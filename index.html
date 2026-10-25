@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.10.25-0125";
+window.MF_VERSION = "2026.10.25-0133";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -46,6 +46,7 @@ window.MF_VERSION = "2026.10.25-0125";
   }
   window.google = { script: { run: runner(null, null) } };
 })();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function(){});
 /* ¿Hay una versión nueva en GitHub? Se revisa al abrir y al volver a la app. */
 (function(){
   function revisar(){
@@ -536,6 +537,29 @@ window.MF_VERSION = "2026.10.25-0125";
   #orbita .orb-tj::after{content:'';position:absolute;left:7px;right:7px;bottom:7px;height:3px;border-radius:2px;background:rgba(255,255,255,.55)}
   #orbita p{margin:0;position:absolute;bottom:-56px;left:0;right:0;text-align:center;font-weight:700;color:var(--text)}
   @keyframes orbitar{to{transform:rotate(360deg)}} @keyframes contraGiro{to{transform:rotate(-360deg)}}
+
+  /* ===== Gastos reales del viaje ===== */
+  .vg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .vg-kpis div{border:1px solid var(--line);border-radius:12px;padding:10px 12px} .vg-kpis small{display:block;font-size:11px;color:var(--muted)} .vg-kpis b{font-size:19px}
+  .vg-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px} @media (max-width:760px){ .vg-grid{grid-template-columns:1fr} .vg-kpis{grid-template-columns:1fr 1fr} }
+  .vg-h{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 8px}
+  .vg-cat{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .vg-cat .bar{grid-column:1/-1;height:7px;border-radius:99px;background:var(--line);overflow:hidden} .vg-cat .bar i{display:block;height:100%;border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  .vg-cat small{color:var(--muted);font-size:11px}
+  .vg-dia{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  .vg-it{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .vg-it small{display:block;color:var(--muted);font-size:11px} .vg-it button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px}
+  .vg-pend{font-size:10px;padding:1px 6px;border-radius:99px;background:color-mix(in srgb,var(--disp) 25%,transparent);color:var(--disp);margin-left:4px}
+  #vgEd .caja{max-height:calc(100dvh - 32px);overflow:auto;gap:9px} #vgEd .acciones{position:sticky;bottom:-20px;background:var(--panel);padding:8px 0 4px}
+  .vg-monto{display:flex;gap:8px;align-items:center} #vgMonto{flex:1;font-size:28px;font-weight:800;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);min-width:0}
+  .vg-tog{display:flex;gap:6px} .vg-tog button{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-weight:700;cursor:pointer}
+  .vg-tog button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .vg-cats{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto} .vg-cats small{width:100%;font-size:10.5px;color:var(--muted);text-transform:uppercase;margin-top:4px}
+  .vg-cats button{padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:12.5px;cursor:pointer}
+  .vg-cats button.on{background:color-mix(in srgb,var(--accent) 20%,var(--bg));border-color:var(--accent);font-weight:700}
+  #vgNota,.vg-f input{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit} .vg-f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+  #vgFab{position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:55;width:58px;height:58px;border-radius:50%;border:0;background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;font-size:26px;box-shadow:0 10px 26px rgba(0,0,0,.35);cursor:pointer;animation:pop .4s both}
+  @media (min-width:761px){ #vgFab{bottom:24px} }
   /* ===== Animaciones 3 ===== */
   /* 1 · anillo del disponible: brillo cuando estás en riesgo */
   .hero.riesgo .hr-fg{filter:drop-shadow(0 0 6px currentColor);animation:latidoArc 1.6s ease-in-out infinite}
@@ -1050,12 +1074,19 @@ window.MF_VERSION = "2026.10.25-0125";
         </div>
         <div class="cuadro" data-id="vpTabla" data-w="12" data-nombre="Presupuesto (tabla)">
           <div class="panel"><div class="vp-tit"><h2 class="izq" style="margin:0">Presupuesto del viaje</h2>
-            <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sec chico" id="vpMover">✥ Mover</button><button class="btn sec chico" id="vpPintar">🎨 Pintar</button><button class="btn sec chico" id="vpAddPlan">＋ Ahorro / pago</button><button class="btn chico" id="vpAddItem">＋ Ítem</button></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn chico" id="vpGastoBtn">＋ Gasto del viaje</button><button class="btn sec chico" id="vpMover">✥ Mover</button><button class="btn sec chico" id="vpPintar">🎨 Pintar</button><button class="btn sec chico" id="vpAddPlan">＋ Ahorro / pago</button><button class="btn chico" id="vpAddItem">＋ Ítem</button></div></div>
             <div class="fact-sub" style="margin:-4px 0 8px">Cada mes, lo que queda del sueldo (después de deudas, fijos y disponible) llena en cascada lo que falta, de arriba hacia abajo. Toca una celda cuando pagues: el monto queda congelado.</div>
             <div class="vp-ley"><span><i class="l-pag"></i>Pagado (monto fijo)</span><span><i class="l-cub"></i>Asegurado con ahorro</span><span><i class="l-par"></i>En parte</span><span><i class="l-prog"></i>Programado (cascada del restante)</span><span><i class="l-no"></i>Falta</span></div>
             <div class="vp-pal" id="vpPal" hidden><span>Elige un color y toca las celdas:</span><span id="vpCols"></span>
               <label class="vp-fila"><input type="checkbox" id="vpFilaComp"> Fila completa</label><button class="btn sec chico" id="vpPinListo">Listo</button></div>
             <div class="vp-tw"><table class="vp-t" id="vpTabla"></table></div></div>
+        </div>
+        <div class="cuadro" data-id="vpReal" data-w="12" data-nombre="Gastos reales del viaje">
+          <div class="panel"><div class="vp-tit"><h2 class="izq" style="margin:0">💵 Gastos reales del viaje</h2><button class="btn chico" id="vpGastoBtn2">＋ Gasto</button></div>
+            <div class="fact-sub" id="vgSub" style="margin:-4px 0 10px"></div>
+            <div class="vg-kpis" id="vgKpis"></div>
+            <div class="vg-grid"><div><h3 class="vg-h">Por categoría</h3><div id="vgCats"></div></div><div><h3 class="vg-h">Por día</h3><div id="vgDias"></div><h3 class="vg-h" style="margin-top:14px">Últimos gastos</h3><div id="vgLista"></div></div></div>
+          </div>
         </div>
       </div>
     </section>
@@ -1164,6 +1195,17 @@ window.MF_VERSION = "2026.10.25-0125";
   <div class="err" id="vpEdErr"></div>
   <div class="acciones"><button type="button" class="btn peligro" id="vpEdDel" hidden>Eliminar</button><span style="flex:1"></span><button type="button" class="btn sec" id="vpEdNo">Cancelar</button><button class="btn" id="vpEdOk">Guardar</button></div>
 </form></div>
+<div id="vgEd" class="modal" hidden><form class="caja" id="fVg" autocomplete="off" style="width:min(440px,100%)">
+  <h3>💵 Gasto del viaje</h3>
+  <div class="vg-monto"><input id="vgMonto" inputmode="decimal" placeholder="0" required><div class="vg-tog" id="vgMon"><button type="button" data-v="USD" class="on">US$</button><button type="button" data-v="CLP">$ CLP</button></div></div>
+  <div class="vg-tog" id="vgMed"><button type="button" data-v="Efectivo" class="on">💵 Efectivo</button><button type="button" data-v="Tarjeta">💳 Tarjeta</button></div>
+  <div class="vg-cats" id="vgCatSel"></div>
+  <input id="vgNota" placeholder="Nota (opcional): ej. propina mesero, helado…" maxlength="80">
+  <label class="vg-f">Fecha y hora <input type="datetime-local" id="vgFecha"></label>
+  <div class="err" id="vgErr"></div>
+  <div class="acciones"><span style="flex:1"></span><button type="button" class="btn sec" id="vgNo">Cancelar</button><button class="btn" id="vgOk">Guardar</button></div>
+</form></div>
+<button id="vgFab" title="Anotar un gasto del viaje" hidden>💵</button>
 <div id="clave" class="modal" hidden><form class="caja" id="fClave">
   <h3 id="clTit">Ingresa tu clave</h3><p id="clTxt">Para ver los montos en pesos.</p>
   <input type="password" id="clIn" autocomplete="current-password" inputmode="text" placeholder="Clave" required>
@@ -1292,12 +1334,16 @@ function monedaCae(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches)
 function cargar(silencioso){
   if(!silencioso){ $('carga').hidden=false; esqueleto();
     document.querySelectorAll('main section').forEach(s=>s.hidden=true); }
-  google.script.run.withSuccessHandler(r=>{D=r;preparar();})
-    .withFailureHandler(e=>{$('carga').hidden=false;$('carga').classList.remove('sk-on');$('carga').textContent='Error: '+e.message;quitarSplash();}).getDatos();
+  google.script.run.withSuccessHandler(r=>{D=r;preparar(); try{ localStorage.setItem('mfUltimoD',JSON.stringify(r)); localStorage.setItem('mfUltimoDf',new Date().toISOString()); }catch(e){} })
+    .withFailureHandler(e=>{   // sin internet (ej. en el crucero): usa los últimos datos guardados en el teléfono
+      let c=null; try{ c=JSON.parse(localStorage.getItem('mfUltimoD')||'null'); }catch(_){}
+      if(c){ D=c; preparar(); const f=(localStorage.getItem('mfUltimoDf')||'').slice(0,16).replace('T',' '); toast('📴 Sin conexión: mostrando tus datos guardados'+(f?' del '+f:'')); return; }
+      $('carga').hidden=false;$('carga').classList.remove('sk-on');$('carga').textContent='Error: '+e.message;quitarSplash();}).getDatos();
 }
 
 function preparar(){
   $('carga').classList.remove('sk-on'); quitarSplash();
+  setTimeout(()=>{ try{ rVgFab(); vgSincronizar(); }catch(e){} },300);
   D.ingresos=D.ingresos||[]; D.abonos=D.abonos||[]; prepIngresos();
   if(!privListo){ privListo=true; let ver=false; try{ver=sessionStorage.getItem('verPesos')==='1';}catch(e){} PRIV=!!D.clave&&!ver; pintarPriv(); }
   D.fijos=D.fijos||[]; D.ahorro=D.ahorro||[]; D.metas=D.metas||[]; D.carpetas=D.carpetas||[];
@@ -2406,6 +2452,7 @@ function rPlanViaje(){
   h+=fila('<b>Faltante</b>',fal/dol,fal,null,null,{cls:'tot'+(fal>0?' neg':'')});
   $('vpTabla').innerHTML=h+'</tbody>';
   vpCascAnim=vistaAnim!=='plan'&&!quieto; vpAplicarColores(); vpCascAnim=false;
+  rGastosViaje(items,dol);
   // edición desde la tabla
   $('vpTabla').querySelectorAll('[data-vpi]').forEach(td=>td.onclick=()=>vpEditar('item',items.find(x=>x.fila===+td.dataset.vpi)));
   $('vpTabla').querySelectorAll('tr[data-conc] td.c').forEach(td=>{
@@ -2492,6 +2539,80 @@ $('vpTabla').addEventListener('click',e=>{
   if(vpSel.conc!==conc) return toast('Solo puedes moverla dentro de la misma fila');
   const f=vpSel.filas; $('vpMover').classList.remove('on'); $('vpMover').textContent='✥ Mover'; vpMover(f,td.dataset.k||td.dataset.d);
 },true);
+/* ================= GASTOS REALES DEL VIAJE (funciona sin internet) =================
+   Cada gasto se guarda primero en el iPhone (cola) y se sube a la hoja "Viaje gastos" cuando hay conexión. */
+const VG_COLA='mfGastosViaje';
+const vgCola=()=>{ try{ return JSON.parse(localStorage.getItem(VG_COLA)||'[]'); }catch(e){ return []; } };
+const vgGuardaCola=L=>{ try{ localStorage.setItem(VG_COLA,JSON.stringify(L)); }catch(e){} };
+let vgSubiendo=false, vgSel={mon:'USD',med:'Efectivo',cat:''};
+function vgSincronizar(){
+  const L=vgCola(); if(!L.length||vgSubiendo||!D) return;
+  vgSubiendo=true;
+  google.script.run.withSuccessHandler(r=>{ vgSubiendo=false; const subidos=new Set(L.map(g=>g.id));
+      vgGuardaCola(vgCola().filter(g=>!subidos.has(g.id))); if(r&&r.gastos){ D.viaje=r; } toast('☁️ '+L.length+' gasto'+(L.length>1?'s':'')+' del viaje sincronizado'+(L.length>1?'s':'')); if(vista==='plan') render(); else rVgFab(); })
+    .withFailureHandler(()=>{ vgSubiendo=false; }).registrarGastosViaje(L);
+}
+addEventListener('online',()=>setTimeout(vgSincronizar,1500));
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(vgSincronizar,1500); });
+function vgTodos(){ const sub=(D&&D.viaje&&D.viaje.gastos)||[], ids=new Set(sub.map(g=>g.id)); return sub.concat(vgCola().filter(g=>!ids.has(g.id)).map(g=>Object.assign({pend:true},g))); }
+/* Categorías para anotar gastos: los ítems del plan que se gastan allá (no los que ya se pagaron antes, como la Reserva, ni los que se pagan en pesos, como los Pasajes) */
+function vgEsGastable(x){ const V=D.viaje; if(vpEsCub(x)) return false; if(x.clp>0&&!x.usd) return false;
+  return !V.plan.some(p=>p.pagado&&p.tipo==='Pago'&&vpMatch(p.concepto,x.concepto)); }
+function vgCategorias(){ const V=D&&D.viaje; if(!V) return []; const out=[], L=V.items.filter(vgEsGastable);
+  [...new Set(L.map(x=>x.seccion))].forEach(sn=>out.push({sec:sn,items:L.filter(x=>x.seccion===sn).map(x=>x.concepto)})); out.push({sec:'Otros',items:['Otros']}); return out; }
+const vgCorto=t=>String(t).replace(/\s*\(.*\)\s*$/,'');
+function vgAbrir(){
+  if(!D||!D.viaje) return toast('Primero carga la app con internet una vez');
+  vgSel={mon:vgSel.mon||'USD',med:vgSel.med||'Efectivo',cat:vgSel.cat||''};
+  $('vgMonto').value=''; $('vgNota').value=''; $('vgErr').textContent='';
+  const ah=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16); $('vgFecha').value=ah;
+  $('vgCatSel').innerHTML=vgCategorias().map(g=>`<small>${esc(g.sec)}</small>`+g.items.map(c=>`<button type="button" data-c="${esc(c)}" class="${c===vgSel.cat?'on':''}">${esc(vgCorto(c))}</button>`).join('')).join('');
+  $('vgCatSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{ vgSel.cat=b.dataset.c; $('vgCatSel').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+  ['vgMon','vgMed'].forEach(id=>$(id).querySelectorAll('button').forEach(b=>{ const k=id==='vgMon'?'mon':'med'; b.classList.toggle('on',b.dataset.v===vgSel[k]);
+    b.onclick=()=>{ vgSel[k]=b.dataset.v; $(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }; }));
+  $('vgEd').hidden=false; setTimeout(()=>$('vgMonto').focus(),60);
+}
+$('fVg').onsubmit=e=>{ e.preventDefault();
+  const m=parseFloat(String($('vgMonto').value).replace(/\./g,vgSel.mon==='CLP'?'':'.').replace(',','.').replace(/[^\d.]/g,''));
+  if(!(m>0)) return $('vgErr').textContent='Escribe el monto';
+  if(!vgSel.cat) return $('vgErr').textContent='Elige una categoría';
+  const g={id:'app-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),fecha:$('vgFecha').value||new Date().toISOString().slice(0,16),monto:m,moneda:vgSel.mon,cat:vgSel.cat,medio:vgSel.med,nota:$('vgNota').value.trim()};
+  vgGuardaCola(vgCola().concat([g])); $('vgEd').hidden=true; monedaCae();
+  toast(navigator.onLine?'Gasto guardado ✓':'Gasto guardado en el iPhone · se sube cuando tengas señal');
+  if(vista==='plan') render(); vgSincronizar();
+};
+$('vgNo').onclick=()=>{$('vgEd').hidden=true;};
+['vpGastoBtn','vpGastoBtn2','vgFab'].forEach(id=>$(id).onclick=vgAbrir);
+function vgBorrar(id){
+  const cola=vgCola(); if(cola.some(g=>g.id===id)){ vgGuardaCola(cola.filter(g=>g.id!==id)); render(); return; }
+  if(!confirm('¿Borrar este gasto?')) return;
+  google.script.run.withSuccessHandler(r=>{ D.viaje=r; toast('Gasto borrado'); render(); }).withFailureHandler(e=>toast('No se pudo borrar: '+e.message)).borrarGastoViaje(id);
+}
+/* Botón flotante 💵: aparece desde 2 días antes del viaje hasta 2 días después */
+function rVgFab(){ const c=D&&D.viaje&&D.viaje.cfg; let ver=false;
+  if(c&&c.inicio){ const h=new Date(), i=new Date(c.inicio+'T00:00:00'), f=new Date((c.fin||c.inicio)+'T23:59:59'); i.setDate(i.getDate()-2); f.setDate(f.getDate()+2); ver=h>=i&&h<=f; }
+  $('vgFab').hidden=!(ver||vgCola().length); }
+function rGastosViaje(items,dol){
+  const G=vgTodos(), aUsd=g=>g.moneda==='USD'?g.monto:g.monto/dol, aClp=g=>g.moneda==='CLP'?g.monto:g.monto*dol;
+  const efe=(D.carpetas||[]).find(c=>monedaDe(c.carpeta)==='USD'&&/efectivo/i.test(c.cuenta||'')), efeIni=efe?saldoHoyNat(efe.carpeta):0;
+  const gEfeUsd=suma(G.filter(g=>g.medio==='Efectivo'&&g.moneda==='USD'),g=>g.monto), totUsd=suma(G,aUsd), pend=G.filter(g=>g.pend).length;
+  $('vgSub').innerHTML=G.length?`${G.length} gasto${G.length>1?'s':''} anotado${G.length>1?'s':''}${pend?` · <b style="color:${css('--disp')}">${pend} esperando señal para subir</b>`:' · todo sincronizado ☁️'}`:'Aún no anotas gastos. Durante el viaje usa ＋ Gasto (o el botón 💵): funciona sin internet.';
+  $('vgKpis').innerHTML=`<div><small>Gastado en el viaje</small><b>${USD(totUsd)}</b><small>≈ ${CLP(totUsd*dol)}</small></div>
+    <div><small>Efectivo en dólares</small><b>${USD(Math.max(0,efeIni-gEfeUsd))}</b><small>de ${USD(efeIni)}${efe?' ('+esc(efe.carpeta)+')':''}</small></div>
+    <div><small>Pagado con efectivo</small><b>${USD(suma(G.filter(g=>g.medio==='Efectivo'),aUsd))}</b><small>${G.filter(g=>g.medio==='Efectivo').length} gastos</small></div>
+    <div><small>Pagado con tarjeta</small><b>${USD(suma(G.filter(g=>g.medio==='Tarjeta'),aUsd))}</b><small>${G.filter(g=>g.medio==='Tarjeta').length} gastos</small></div>`;
+  const cats=[...new Set(items.filter(vgEsGastable).map(x=>x.concepto).concat(G.map(g=>g.cat)))];
+  $('vgCats').innerHTML=cats.map(c=>{ const it=items.find(x=>x.concepto===c), pres=it?(it.usd||vpClp(it)/dol):0, gas=suma(G.filter(g=>g.cat===c),aUsd);
+    if(!gas&&!pres) return ''; const pc=pres?gas/pres:gas?1:0, col=pc>1?css('--exp'):pc>.8?css('--disp'):css('--sav');
+    return `<div class="vg-cat"><span>${esc(vgCorto(c))} ${gas?'':'<small>· sin gastos aún</small>'}</span><span><b style="color:${gas?col:'inherit'}">${USD(gas)}</b> <small>/ ${USD(pres)}</small></span>
+      <div class="bar"><i style="width:${Math.min(100,pc*100)}%;background:${col}"></i></div>${pres?`<small>${pc>1?'te pasaste por '+USD(gas-pres):'quedan '+USD(pres-gas)}</small>`:''}</div>`; }).join('');
+  const dias={}; G.forEach(g=>{ const d=g.fecha.slice(0,10); dias[d]=(dias[d]||0)+aUsd(g); });
+  $('vgDias').innerHTML=Object.keys(dias).sort().map(d=>`<div class="vg-dia"><span>${vpFecha(d)}</span><b>${USD(dias[d])}</b></div>`).join('')||'<div class="vacio" style="padding:6px 0">—</div>';
+  $('vgLista').innerHTML=G.slice().sort((a,b)=>a.fecha<b.fecha?1:-1).slice(0,12).map(g=>`<div class="vg-it"><div>${esc(vgCorto(g.cat))}${g.pend?'<span class="vg-pend">⏳ sin subir</span>':''}<small>${vpFecha(g.fecha.slice(0,10))} ${g.fecha.slice(11,16)} · ${g.medio==='Efectivo'?'💵':'💳'} ${esc(g.nota||'')}</small></div>
+    <b>${g.moneda==='USD'?USD(g.monto):CLP(g.monto)}</b><button type="button" data-id="${esc(g.id)}" title="Borrar">✕</button></div>`).join('')||'<div class="vacio" style="padding:6px 0">—</div>';
+  $('vgLista').querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>vgBorrar(b.dataset.id));
+}
+
 /* ---- editor (modal) ---- */
 let vpCtx=null;
 function vpEditar(tipo,x){
