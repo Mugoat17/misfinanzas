@@ -474,7 +474,34 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
     .cuadro>.panel:hover,.cuadro>.kpi:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.18)}
     body.editando .cuadro>.panel:hover,body.editando .cuadro>.kpi:hover{transform:none}
   }
-  @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important} }
+
+  /* ===== Animaciones 2 ===== */
+  .anim{animation:secIn .28s ease both} @keyframes secIn{from{opacity:0}to{opacity:1}}
+  .anim .barra b{transform-origin:left;animation:crece .9s cubic-bezier(.2,.8,.2,1) .2s both}
+  /* carga con brillo */
+  #carga.sk-on{display:block;height:auto;padding:4px 0}
+  .sk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px} .sk-grid .sk{height:110px}
+  .sk{border-radius:16px;background:linear-gradient(90deg,color-mix(in srgb,var(--line) 70%,transparent) 25%,color-mix(in srgb,var(--line) 30%,var(--panel)) 50%,color-mix(in srgb,var(--line) 70%,transparent) 75%);background-size:200% 100%;animation:brillo 1.4s linear infinite}
+  .sk.alto{height:220px;margin-top:14px} .sk.lin{height:16px;width:40%;margin:0 0 14px;border-radius:8px}
+  @media (max-width:760px){ .sk-grid{grid-template-columns:1fr 1fr} }
+  /* intro con el logo */
+  #splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#0f5132,#04261a);transition:opacity .45s ease,visibility .45s}
+  #splash.fuera{opacity:0;visibility:hidden}
+  #splash svg{width:132px;height:132px;border-radius:30px;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pop .5s cubic-bezier(.2,.8,.2,1) both}
+  #splash .b1,#splash .b2,#splash .b3{transform-box:fill-box;transform-origin:bottom;animation:subeB .55s cubic-bezier(.2,.8,.2,1) both}
+  #splash .b1{animation-delay:.25s} #splash .b2{animation-delay:.38s} #splash .b3{animation-delay:.51s}
+  #splash .fl{stroke-dasharray:900;stroke-dashoffset:900;animation:traza .7s ease-out .6s forwards}
+  #splash .pt{opacity:0;animation:aparece .2s ease 1.2s forwards}
+  #splash .mo{transform-box:fill-box;transform-origin:center;animation:cae .6s cubic-bezier(.3,1.4,.5,1) 1.25s both}
+  #splash p{margin:18px 0 0;color:#d1fae5;font:700 18px/1 system-ui,-apple-system,sans-serif;text-align:center;opacity:0;animation:aparece .4s ease .9s forwards}
+  @keyframes subeB{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  @keyframes traza{to{stroke-dashoffset:0}} @keyframes aparece{to{opacity:1}}
+  @keyframes cae{0%{transform:translateY(-260px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+  /* celda recién pagada */
+  .vp-t td.flash{animation:destello 1.2s ease-out 1}
+  @keyframes destello{0%{box-shadow:inset 0 0 0 40px rgba(34,197,94,.75)}100%{box-shadow:inset 0 0 0 40px rgba(34,197,94,0)}}
+  #confeti{position:fixed;inset:0;pointer-events:none;z-index:9998}
+  @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important} #splash{display:none} }
 
   /* ===== Categorías ===== */
   .cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px;margin-top:6px}
@@ -614,6 +641,19 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div>
+<svg viewBox="0 0 1024 1024"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#065f46"/></linearGradient>
+<linearGradient id="sc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
+<rect width="1024" height="1024" fill="url(#sg)"/>
+<rect class="b1" x="210" y="590" width="120" height="230" rx="26" fill="#fff" opacity=".55"/>
+<rect class="b2" x="370" y="480" width="120" height="340" rx="26" fill="#fff" opacity=".75"/>
+<rect class="b3" x="530" y="370" width="120" height="450" rx="26" fill="#fff" opacity=".95"/>
+<path class="fl" d="M190 520 L420 330 L540 420 L760 220" fill="none" stroke="#fff" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="pt" d="M700 190 L800 180 L790 280 Z" fill="#fff" stroke="#fff" stroke-width="30" stroke-linejoin="round"/>
+<g class="mo"><circle cx="760" cy="690" r="150" fill="url(#sc)" stroke="#fff" stroke-width="18"/>
+<text x="760" y="752" font-family="Arial Black,Arial,Helvetica,sans-serif" font-weight="900" font-size="190" fill="#7c4a03" text-anchor="middle">$</text></g></svg>
+<p>Mis Finanzas</p></div></div>
+<canvas id="confeti" hidden></canvas>
 <div class="app">
   <aside class="side">
     <div class="brand"><i>$</i>Mis Finanzas</div>
@@ -1122,14 +1162,33 @@ const hayUSD=()=>Object.values(infoCarpeta).some(c=>c.moneda==='USD'&&c.activa);
 const HOY=mesActual();
 
 /* ================= carga ================= */
+/* ---- animaciones: carga con brillo, intro del logo y confeti ---- */
+function esqueleto(){ const c=$('carga'); c.classList.add('sk-on');
+  c.innerHTML='<div class="sk lin"></div><div class="sk-grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div><div class="sk alto"></div><div class="sk alto"></div>'; }
+let splashT0=Date.now();
+function quitarSplash(){ const s=$('splash'); if(!s||s.classList.contains('fuera')) return;
+  setTimeout(()=>{ s.classList.add('fuera'); setTimeout(()=>s.remove(),600); }, Math.max(0,1900-(Date.now()-splashT0))); }   // deja ver la animación completa del logo
+function confeti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv=$('confeti'), cx=cv.getContext('2d'), W=cv.width=innerWidth*devicePixelRatio, H=cv.height=innerHeight*devicePixelRatio; cv.hidden=false;
+  const col=['#22c55e','#16a34a','#fde68a','#f59e0b','#ffffff','#4ade80'], P=Array.from({length:140},()=>({
+    x:W/2+(Math.random()-.5)*W*.3, y:H*.35, vx:(Math.random()-.5)*28*devicePixelRatio, vy:(-Math.random()*26-8)*devicePixelRatio,
+    s:(6+Math.random()*8)*devicePixelRatio, r:Math.random()*6, vr:(Math.random()-.5)*.4, c:col[Math.floor(Math.random()*col.length)] }));
+  const t0=performance.now();
+  (function paso(t){ const k=(t-t0)/1600; cx.clearRect(0,0,W,H);
+    P.forEach(p=>{ p.vy+=1.1*devicePixelRatio; p.vx*=.985; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      cx.save(); cx.globalAlpha=Math.max(0,1-k); cx.translate(p.x,p.y); cx.rotate(p.r); cx.fillStyle=p.c; cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); cx.restore(); });
+    if(k<1) requestAnimationFrame(paso); else { cx.clearRect(0,0,W,H); cv.hidden=true; } })(t0);
+}
 function cargar(silencioso){
-  if(!silencioso){ $('carga').hidden=false; $('carga').textContent='Cargando tus movimientos…';
+  if(!silencioso){ $('carga').hidden=false; esqueleto();
     document.querySelectorAll('main section').forEach(s=>s.hidden=true); }
   google.script.run.withSuccessHandler(r=>{D=r;preparar();})
-    .withFailureHandler(e=>{$('carga').hidden=false;$('carga').textContent='Error: '+e.message;}).getDatos();
+    .withFailureHandler(e=>{$('carga').hidden=false;$('carga').classList.remove('sk-on');$('carga').textContent='Error: '+e.message;quitarSplash();}).getDatos();
 }
 
 function preparar(){
+  $('carga').classList.remove('sk-on'); quitarSplash();
   D.ingresos=D.ingresos||[]; D.abonos=D.abonos||[]; prepIngresos();
   if(!privListo){ privListo=true; let ver=false; try{ver=sessionStorage.getItem('verPesos')==='1';}catch(e){} PRIV=!!D.clave&&!ver; pintarPriv(); }
   D.fijos=D.fijos||[]; D.ahorro=D.ahorro||[]; D.metas=D.metas||[]; D.carpetas=D.carpetas||[];
@@ -1461,7 +1520,7 @@ function rFacturado(k){
   $('factBancos').querySelectorAll('button[data-fila]').forEach(bt=>bt.onclick=()=>{
     if(!confirm('¿Marcar este estado de cuenta como pagado?')) return;
     bt.disabled=true; bt.textContent='Guardando…';
-    google.script.run.withSuccessHandler(()=>{toast('Marcado como pagado');cargar(true);})
+    google.script.run.withSuccessHandler(()=>{toast('✓ Marcado como pagado');confeti();cargar(true);})
       .withFailureHandler(e=>{alert(e.message);bt.disabled=false;}).marcarFacturaPagada(+bt.dataset.fila);
   });
   $('factBancos').querySelectorAll('button[data-guardar]').forEach(bt=>bt.onclick=()=>{
@@ -2213,12 +2272,14 @@ var vpPinCol=VP_PINT[0], vpGuardaCol=null, vpCov=null, vpArr=null, vpSel=null;
 const vpCols=()=>{ D.viaje.cfg.colores=D.viaje.cfg.colores||{}; return D.viaje.cfg.colores; };
 /* Verde = pagado (fuerte) o asegurado con ahorro (suave); parcial = barra verde hasta el %; el último pendiente dice "falta" */
 function vpAplicarColores(){
+  const antes=window.__vpPag, ahora=new Set();
   const C=(D.viaje&&D.viaje.cfg.colores)||{}, V=vpCov||{celda:{},item:{}}, verde=css('--sav');
   $('vpTabla').querySelectorAll('tr[data-r] td[data-col]').forEach(td=>{
     const r=td.parentNode.dataset.r, o=V.celda[r+'|'+td.dataset.col];
     td.classList.remove('pag','cub','auto','prog'); td.style.backgroundImage=''; td.title='';
     if(o&&o.tot>0){ const cub=o.pag+o.aseg, pc=Math.min(100,Math.round(cub/o.tot*100));
-      if(o.pag>=o.tot-0.5){ td.classList.add('pag'); td.title='✓ Pagado (monto congelado)'; }
+      if(o.pag>=o.tot-0.5){ td.classList.add('pag'); td.title='✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
+        if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } }
       else if(pc>=100){ td.classList.add('cub'); td.title='✓ Asegurado con ahorro'; }
       else if(pc>0){ td.style.backgroundImage=`linear-gradient(90deg, color-mix(in srgb, ${verde} 32%, transparent) ${pc}%, transparent ${pc}%)`; td.title=`Cubierto ${CLP(cub)} de ${CLP(o.tot)} (${pc}%) · falta ${CLP(o.tot-cub)}`; }
       if(o.prog&&o.pag<0.5&&o.aseg<0.5){ td.classList.add('prog'); td.title='Programado: sale del restante de este mes. Tócalo cuando lo pagues.'; }
@@ -2229,6 +2290,7 @@ function vpAplicarColores(){
     const c=C[r+'|'+td.dataset.col]||C[r+'|*'];
     if(c){ td.style.setProperty('background-color',c,'important'); td.style.backgroundImage='none'; } else td.style.removeProperty('background-color'); td.classList.toggle('pint',!!c);
   });
+  window.__vpPag=ahora;
   $('vpTabla').classList.toggle('pintando',!$('vpPal').hidden);
   $('vpTabla').classList.toggle('moviendo',!!vpSel||$('vpMover').classList.contains('on'));
 }
@@ -2301,12 +2363,12 @@ function vpEditar(tipo,x){
 }
 const vpNum=id=>{const v=String(($(id)||{}).value||'').trim(); if(!v) return ''; const n=parseFloat(v.replace(/\./g,'').replace(',','.').replace(/[^\d.-]/g,'')); return isNaN(n)?'':n;};
 const vpNumUsd=id=>{const v=String(($(id)||{}).value||'').trim(); if(!v) return ''; const n=parseFloat(v.replace(',','.').replace(/[^\d.-]/g,'')); return isNaN(n)?'':n;};
-function vpListo(r,msg){ D.viaje=r; $('vpEd').hidden=true; $('vpEdOk').disabled=false; toast(msg); render(); }
+function vpListo(r,msg,fiesta){ D.viaje=r; $('vpEd').hidden=true; $('vpEdOk').disabled=false; toast(msg); render(); if(fiesta) confeti(); }
 $('fVp').onsubmit=e=>{ e.preventDefault(); const {tipo,x}=vpCtx; $('vpEdOk').disabled=true;
   const fallo=er=>{ $('vpEdErr').textContent=er.message; $('vpEdOk').disabled=false; };
   if(tipo==='item') google.script.run.withSuccessHandler(r=>vpListo(r,'Presupuesto guardado')).withFailureHandler(fallo).guardarViaje('item',
       {fila:x&&x.fila,seccion:$('vpS').value,concepto:$('vpC').value,usd:vpNumUsd('vpU'),clp:vpNum('vpP'),carpeta:$('vpCa').value,nota:$('vpN').value,orden:vpNum('vpO'),suma:$('vpSu').checked,cubre:$('vpCu').value});
-  else if(tipo==='plan') google.script.run.withSuccessHandler(r=>vpListo(r,'Plan guardado')).withFailureHandler(fallo).guardarViaje('plan',
+  else if(tipo==='plan') google.script.run.withSuccessHandler(r=>vpListo(r,$('vpPg')&&$('vpPg').checked?'✓ Pagado: queda congelado':'Plan guardado',$('vpPg')&&$('vpPg').checked&&!(x&&x.pagado))).withFailureHandler(fallo).guardarViaje('plan',
       {fila:x&&x.fila,fecha:$('vpF').value,concepto:$('vpC').value,tipo:$('vpT').value,usd:vpNumUsd('vpU'),nota:$('vpN').value,pagado:$('vpPg').checked,
        clp:vpNum('vpP')!==''?vpNum('vpP'):($('vpPg').checked&&vpNumUsd('vpU')?Math.round(vpNumUsd('vpU')*vpDolar()):'')});   // al marcar pagado sin CLP, se congela al dólar de hoy
   else google.script.run.withSuccessHandler(r=>vpListo(r,'Viaje actualizado')).withFailureHandler(fallo).guardarViajeConfig({nombre:$('vpC').value,inicio:$('vpI').value,fin:$('vpFi').value,nota:$('vpN').value});
@@ -2577,7 +2639,7 @@ function rMetas(){
     const mt=D.metas[+b.dataset.cumplida], lleva=Math.round(valorMetaAl(mt,HOY));
     if(!confirm('¿Marcar "'+mt.nombre+'" como cumplida con '+CLP(lleva)+'? Queda en tu historial de metas cumplidas.')) return;
     b.disabled=true; b.textContent='Guardando…';
-    google.script.run.withSuccessHandler(()=>{toast('🏆 Meta cumplida');cargar(true);}).withFailureHandler(e=>{alert(e.message);b.disabled=false;}).marcarMetaCumplida(mt.nombre,lleva,'');
+    google.script.run.withSuccessHandler(()=>{toast('🏆 Meta cumplida');confeti();cargar(true);}).withFailureHandler(e=>{alert(e.message);b.disabled=false;}).marcarMetaCumplida(mt.nombre,lleva,'');
   });
 }
 
