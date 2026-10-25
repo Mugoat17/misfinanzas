@@ -503,6 +503,11 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
   @keyframes destello{0%{box-shadow:inset 0 0 0 40px rgba(34,197,94,.75)}100%{box-shadow:inset 0 0 0 40px rgba(34,197,94,0)}}
   #confeti{position:fixed;inset:0;pointer-events:none;z-index:9998}
 
+  /* gráficos que reaccionan al cursor */
+  .panel:has(canvas){transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+  @media (hover:hover){ .panel:has(canvas):hover{transform:translateY(-4px) scale(1.012);box-shadow:0 16px 40px rgba(0,0,0,.22),0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)} canvas{cursor:crosshair} }
+  .leyenda li{transition:background .2s,transform .2s;border-radius:8px} .leyenda li:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);transform:translateX(3px)}
+  .dona-h{color:var(--accent);transition:color .2s}
   /* ===== Animaciones 3 ===== */
   /* 1 · anillo del disponible: brillo cuando estás en riesgo */
   .hero.riesgo .hr-fg{filter:drop-shadow(0 0 6px currentColor);animation:latidoArc 1.6s ease-in-out infinite}
@@ -1496,7 +1501,27 @@ function grafico(id,cfg){
   Chart.defaults.font.family=getComputedStyle(document.body).fontFamily;
   Chart.defaults.font.size=11;
   if(!quieto&&Chart.defaults.animation){ Chart.defaults.animation.duration=1200; Chart.defaults.animation.easing='easeOutQuart'; }   // solo más lento y suave (sin retrasos por punto: rompían algunos gráficos)
+  realzar(cfg);
   charts[id]=new Chart($(id),cfg);
+}
+/* Al pasar el cursor (o el dedo) por un gráfico: todo el mes/punto se destaca y el globo muestra el desglose con el total. */
+function realzar(cfg){
+  const o=cfg.options=cfg.options||{}, pl=o.plugins=o.plugins||{}, t=cfg.type;
+  if(t==='line'||t==='bar'){
+    if(!o.interaction) o.interaction={mode:'index',intersect:false};
+    (cfg.data.datasets||[]).forEach(d=>{
+      if(t==='line'||d.type==='line'){ if(d.pointHoverRadius==null) d.pointHoverRadius=7; if(d.pointHoverBorderWidth==null) d.pointHoverBorderWidth=3; d.pointHoverBackgroundColor=d.pointHoverBackgroundColor||d.borderColor; }
+      else { if(d.hoverBorderWidth==null) d.hoverBorderWidth=2; if(d.hoverBorderColor==null) d.hoverBorderColor='#ffffff'; }
+    });
+    const tt=pl.tooltip=pl.tooltip||{}; if(tt.enabled===false) return;
+    const cb=tt.callbacks=tt.callbacks||{};
+    const visibles=(cfg.data.datasets||[]).filter(d=>!d.hidden&&!(d.label||'').match(/l[ií]nea roja|ritmo|meta|proyecci/i)).length;
+    if(!cb.footer&&visibles>1) cb.footer=items=>{ const v=items.filter(i=>typeof i.raw==='number'&&!(i.dataset.label||'').match(/l[ií]nea roja|ritmo|meta|proyecci/i));
+      return v.length>1?'Total: '+CLP(v.reduce((a,i)=>a+i.raw,0)):''; };
+    tt.padding=tt.padding||12; tt.caretSize=7; tt.footerFont={size:12,weight:'bold'}; tt.footerMarginTop=8;
+  }
+  if(t==='doughnut'||t==='pie'){ (cfg.data.datasets||[]).forEach(d=>{ d.hoverOffset=16; d.hoverBorderWidth=2; d.hoverBorderColor='#ffffff'; }); }
+  o.animation=o.animation===false?false:o.animation;
 }
 const tip={backgroundColor:'#0d1f16',padding:10,cornerRadius:8,displayColors:false,titleFont:{size:11},bodyFont:{size:11}};
 const ejeY=(apilado)=>({stacked:apilado,beginAtZero:true,grid:{color:css('--line')},border:{display:false},ticks:{callback:corto$,maxTicksLimit:5}});
@@ -1539,9 +1564,16 @@ function dona(id,leyId,totId,items){
   grafico(id,{type:'doughnut',data:{labels:items.map(p=>p.nombre),datasets:[{data:items.map(p=>p.valor),
       backgroundColor:items.map(p=>relleno(p.color,p.credito)),borderColor:items.map(p=>p.color),borderWidth:items.map(p=>p.credito?1:0),hoverOffset:4}]},
     options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},etiquetas:{modo:'dona'},
-      tooltip:{...tip,callbacks:{label:c=>c.label+': '+CLP(c.raw)}}}}});
+      tooltip:{...tip,callbacks:{label:c=>c.label+': '+CLP(c.raw)+' ('+Math.round(c.raw/total*100)+'%)'}}},
+      onHover:(e,el)=>{ const c=$(totId), h=c.previousElementSibling;
+        if(el.length){ const i=el[0].index; c.textContent=corto$(items[i].valor); if(h&&!h._o){h._o=h.textContent;} if(h) h.textContent=items[i].nombre.toUpperCase().slice(0,18)+' · '+Math.round(items[i].valor/total*100)+'%'; c.classList.add('dona-h'); }
+        else { c.textContent=corto$(total); if(h&&h._o) h.textContent=h._o; c.classList.remove('dona-h'); } }}});
   $(leyId).innerHTML=items.map(p=>`<li>${swatch(p.color,p.credito)}<span class="nm">${esc(p.nombre)}</span>
     <span class="mt">${CLP(p.valor)}</span><span class="pc">${Math.round(p.valor/total*100)}%</span></li>`).join('');
+  [...$(leyId).children].forEach((li,i)=>{   // pasar por la leyenda destaca su parte del gráfico
+    li.onmouseenter=()=>{ const ch=charts[id]; if(!ch) return; ch.setActiveElements([{datasetIndex:0,index:i}]); ch.tooltip.setActiveElements([{datasetIndex:0,index:i}],{x:0,y:0}); ch.update(); ch.options.onHover(null,[{index:i}]); };
+    li.onmouseleave=()=>{ const ch=charts[id]; if(!ch) return; ch.setActiveElements([]); ch.tooltip.setActiveElements([],{x:0,y:0}); ch.update(); ch.options.onHover(null,[]); };
+  });
 }
 const porTarjetaItems=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).map(([t,v])=>({nombre:t,valor:v,color:colorTarjeta(t),credito:esCred(t)}));
 
