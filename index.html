@@ -252,7 +252,8 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
   .vp-t td.pint{color:#13231b!important} .vp-t td.pint .nt,.vp-t td.pint .cp{color:#334155}
   .vp-t td.cub{background:color-mix(in srgb,var(--sav) 30%,var(--panel))!important} .vp-t td.cub.fc,.vp-t td.cubp.fc{font-weight:600}
   .vp-t .cp.cpv{background:color-mix(in srgb,var(--sav) 22%,transparent);color:var(--sav)}
-  .vp-t td.pag{background:color-mix(in srgb,var(--sav) 48%,var(--panel))!important;color:#0b2a17}
+  .vp-t td.pag{background:color-mix(in srgb,var(--sav) 48%,var(--panel))!important;color:#0b2a17;animation:pagado 2.2s ease-in-out infinite}
+  @keyframes pagado{0%,100%{box-shadow:inset 0 0 0 0 rgba(34,197,94,0),0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:inset 0 0 0 40px rgba(74,222,128,.45),0 0 10px 1px rgba(34,197,94,.55)}}
   .vp-t td.auto{font-style:italic} .vp-t td.auto::after{content:' falta';font-size:9px;font-style:normal;color:var(--exp);font-weight:700;margin-left:3px}
   .vp-t td.pag.auto::after,.vp-t td.cub.auto::after{content:''}
   .vp-t td.prog{background-image:repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--disp) 14%,transparent) 6px 12px)} .vp-t td.ahod{color:var(--sav);font-weight:600}
@@ -519,13 +520,16 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
   .moneda-cae{position:fixed;left:50%;top:-80px;z-index:9997;font-size:64px;transform:translateX(-50%);animation:monedaCae 1.3s cubic-bezier(.3,1.3,.5,1) forwards;pointer-events:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
   @keyframes monedaCae{0%{top:-80px;transform:translateX(-50%) rotateY(0)}70%{top:42vh;transform:translateX(-50%) rotateY(720deg) scale(1)}85%{transform:translateX(-50%) scale(1.15)}100%{top:42vh;transform:translateX(-50%) scale(0);opacity:0}}
   /* 5 · barco del viaje */
-  .vp-barco{position:relative;height:40px;margin:14px 0 2px}
-  .vp-barco .agua{position:absolute;left:0;right:26px;top:24px;height:10px;border-radius:99px;background:color-mix(in srgb,#0ea5e9 18%,var(--line));overflow:hidden}
-  .vp-barco .lleno{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#22c55e);transition:width 1.8s cubic-bezier(.2,.8,.2,1)}
+  .vp-barco{position:relative;height:56px;margin:14px 0 4px}
+  .vp-barco .agua{position:absolute;left:0;right:26px;top:30px;height:22px;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,#0ea5e9 22%,var(--line)),color-mix(in srgb,#0369a1 30%,var(--line)))}
+  .vp-barco .agua::before{content:'';position:absolute;inset:0;opacity:.45;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='12' viewBox='0 0 48 12'%3E%3Cpath d='M0 6 Q12 0 24 6 T48 6 V12 H0Z' fill='%23ffffff' fill-opacity='.18'/%3E%3C/svg%3E") 0 4px/48px 12px repeat-x;animation:mar 3.2s linear infinite reverse}
+  .vp-barco .lleno{position:relative;height:100%;width:0;border-radius:12px;background:linear-gradient(180deg,#38bdf8 0%,#0284c7 55%,#075985 100%);transition:width 1.8s cubic-bezier(.2,.8,.2,1);box-shadow:inset 0 3px 0 rgba(255,255,255,.25)}
+  .vp-barco .lleno::before{content:'';position:absolute;left:0;right:0;top:-1px;height:10px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='12' viewBox='0 0 48 12'%3E%3Cpath d='M0 6 Q12 0 24 6 T48 6 V12 H0Z' fill='%23e0f2fe' fill-opacity='.55'/%3E%3C/svg%3E") 0 0/48px 12px repeat-x;animation:mar 1.6s linear infinite}
+  @keyframes mar{from{background-position-x:0}to{background-position-x:-48px}}
   .vp-barco .lleno::after{content:'';display:block;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);background-size:200% 100%;animation:brillo 2.4s linear infinite}
-  .vp-barco .barco{position:absolute;top:0;left:0;font-size:26px;transform:translateX(-50%);transition:left 1.8s cubic-bezier(.2,.8,.2,1)}
+  .vp-barco .barco{position:absolute;top:2px;left:0;font-size:32px;z-index:2;transform:translateX(-50%);transition:left 1.8s cubic-bezier(.2,.8,.2,1)}
   .vp-barco .barco span{display:inline-block;animation:ola 2.6s ease-in-out infinite}
-  .vp-barco .isla{position:absolute;right:0;top:6px;font-size:22px}
+  .vp-barco .isla{position:absolute;right:-4px;top:12px;font-size:28px}
   .vp-barco-t{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)} .vp-barco-t b{color:var(--text)}
   @keyframes ola{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-3px) rotate(4deg)}}
   /* 6 · cascada que se llena */
