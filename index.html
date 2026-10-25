@@ -15,6 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
+window.MF_VERSION = "2026.10.25-0054";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -44,6 +45,19 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
     }});
   }
   window.google = { script: { run: runner(null, null) } };
+})();
+/* ¿Hay una versión nueva en GitHub? Se revisa al abrir y al volver a la app. */
+(function(){
+  function revisar(){
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(v){
+      v = (v || '').trim(); if (!v || v === window.MF_VERSION || document.getElementById('mfNueva')) return;
+      var b = document.createElement('button'); b.id = 'mfNueva'; b.textContent = '✨ Hay una versión nueva · toca para actualizar';
+      b.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;padding:12px 18px;border:0;border-radius:999px;background:#16a34a;color:#fff;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35)';
+      b.onclick = function(){ location.replace(location.pathname + '?v=' + v); }; document.body.appendChild(b);
+    }).catch(function(){});
+  }
+  addEventListener('load', function(){ setTimeout(revisar, 6000); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) revisar(); });
 })();
 </script>
 
@@ -259,6 +273,7 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
   .vp-t td.prog{background-image:repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--disp) 14%,transparent) 6px 12px)} .vp-t td.ahod{color:var(--sav);font-weight:600}
   .vp-t tr.cap td{font-weight:700;color:var(--accent)} .vp-t .cp.cpr{background:color-mix(in srgb,var(--exp) 15%,transparent);color:var(--exp)}
   .vp-t tr.bonus td{color:var(--sav);font-weight:700;background:color-mix(in srgb,var(--sav) 8%,var(--panel))} .vp-t tr.bonus td.fc{background:color-mix(in srgb,var(--sav) 8%,var(--panel))}
+  .ver-app{font-size:10.5px;color:var(--sideMuted);margin-top:8px;opacity:.8} .menu-ver{grid-column:1/-1;text-align:center;font-size:11px;color:var(--muted);padding:6px 0 2px}
   .vp-t td.falta{color:var(--exp);font-weight:700} .vp-t td.ok{color:var(--sav);font-weight:800}
   .vp-t td[draggable=true]{cursor:grab} .vp-t td.arr{opacity:.4} .vp-t td.drop{outline:2px dashed var(--accent);outline-offset:-3px}
   .vp-t td.sel{outline:3px solid var(--accent);outline-offset:-3px} .vp-t.moviendo td[data-k],.vp-t.moviendo td[data-d]{cursor:crosshair}
@@ -749,7 +764,7 @@ window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSM
         <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span>Más</span></button>
     </nav>
     <div class="menu-mas" id="menuMas" hidden></div>
-    <div class="pie"><div class="bts"><button id="personalizar" title="Mover y ajustar cuadros">✎ Personalizar</button><button id="recargar">↻</button></div></div>
+    <div class="pie"><div class="bts"><button id="personalizar" title="Mover y ajustar cuadros">✎ Personalizar</button><button id="recargar">↻</button></div><div class="ver-app" id="verApp"></div></div>
   </aside>
 
   <main>
@@ -1231,6 +1246,8 @@ const HOY=mesActual();
 function esqueleto(){ const c=$('carga'); c.classList.add('sk-on');
   c.innerHTML='<div class="sk lin"></div><div class="sk-grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div><div class="sk alto"></div><div class="sk alto"></div>'; }
 let splashT0=Date.now();
+const VERSION_APP=window.MF_VERSION?'Versión '+window.MF_VERSION:'Versión Apps Script';
+try{ $('verApp').textContent=VERSION_APP; }catch(e){}
 try{ const sv=document.querySelector('#splash svg'); if(sv) $('ptr').innerHTML=sv.outerHTML.replace(/class="(b1|b2|b3|fl|pt|mo)"/g,''); }catch(e){}
 function quitarSplash(){ const s=$('splash'); if(!s||s.classList.contains('fuera')) return;
   setTimeout(()=>{ s.classList.add('fuera'); setTimeout(()=>s.remove(),600); }, Math.max(0,5000-(Date.now()-splashT0))); }   // deja ver la animación completa del logo
@@ -2023,7 +2040,7 @@ $('snGuardar').onclick=()=>{ const v=+$('snObj').value||0; D.config.dolarObjetiv
   google.script.run.withSuccessHandler(()=>toast(v?'Objetivo fijo: '+DOLAR(v):'Precio recomendado automático')).withFailureHandler(e=>alert(e.message)).guardarDolarObjetivo(v); };
 /* ================= MENÚ "MÁS" (celular) ================= */
 function pintarMenuMas(){
-  $('menuMas').innerHTML=[...document.querySelectorAll('nav button.extra')].map(b=>`<button data-v="${b.dataset.v}" class="${vista===b.dataset.v?'on':''}">${b.querySelector('svg').outerHTML}<span>${b.querySelector('span').childNodes[0].textContent}</span></button>`).join('');
+  $('menuMas').innerHTML=[...document.querySelectorAll('nav button.extra')].map(b=>`<button data-v="${b.dataset.v}" class="${vista===b.dataset.v?'on':''}">${b.querySelector('svg').outerHTML}<span>${b.querySelector('span').childNodes[0].textContent}</span></button>`).join('')+`<div class="menu-ver">${VERSION_APP}</div>`;
   $('menuMas').querySelectorAll('button').forEach(b=>b.onclick=()=>{ $('menuMas').hidden=true; document.querySelector(`nav button[data-v="${b.dataset.v}"]`).click(); });
 }
 
