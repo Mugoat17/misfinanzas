@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.10.25-0111";
+window.MF_VERSION = "2026.10.25-0125";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2338,7 +2338,11 @@ function rPlanViaje(){
   /* ---------- tabla estilo Excel ---------- */
   let meses=[...new Set([...pm.map(p=>p.fecha.slice(0,7)),...dMeses])].sort();
   if(meses.length){ const L=[]; for(let k=meses[0];k<=meses[meses.length-1];k=sumarMeses(k,1)) L.push(k); meses=L; }   // meses seguidos, como en el Excel
-  const diasV=[...new Set(pv.map(p=>p.fecha))].sort();
+  // días del viaje seguidos: desde 2 días antes del inicio hasta el fin (o el último día con datos)
+  const diasV=(()=>{ const L=[...new Set(pv.map(p=>p.fecha))].sort(), mas=f=>{ const d=new Date(f+'T12:00:00'); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); };
+    let ini=c.inicio&&c.inicio.length>7?c.inicio:L[0], fin=[c.fin&&c.fin.length>7?c.fin:'',L[L.length-1]||''].sort().pop();
+    if(!ini||!fin) return L; { const d=new Date(ini+'T12:00:00'); d.setDate(d.getDate()-2); ini=d.toISOString().slice(0,10); }
+    if(L[0]&&L[0]<ini) ini=L[0]; const R=[]; for(let f=ini;f<=fin&&R.length<40;f=mas(f)) R.push(f); return R; })();
   const anios=[...new Set(meses.map(k=>k.slice(0,4)))];
   const nCols=5+meses.length+diasV.length*2;
   let h='<thead><tr><th rowspan="3" class="fc">Concepto</th><th rowspan="3">USD</th><th rowspan="3">CLP</th><th rowspan="3">Ahorrado</th><th rowspan="3">Falta</th>'+
