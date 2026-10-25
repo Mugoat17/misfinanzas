@@ -17,6 +17,7 @@
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
 (function(){
   if (window.google && google.script) return;
+  try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
   function clave(){
     var t = null; try { t = localStorage.getItem('mfToken'); } catch(e) {}
     if (!t) { t = (prompt('Pega tu clave de acceso de Mis Finanzas') || '').trim(); if (t) try { localStorage.setItem('mfToken', t); } catch(e) {} }
