@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.10.25-0133";
+window.MF_VERSION = "2026.10.29-1130";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -614,6 +614,116 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   #pFx.fx-baja{animation:fxLateV 1.4s ease-in-out 4}
   @keyframes fxLate{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.35)}}
   @keyframes fxLateV{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:0 0 0 6px rgba(34,197,94,.35)}}
+  /* ---------- Departamento ---------- */
+  .dp-hero{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;align-items:end;overflow:hidden;
+    background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--sav) 16%,var(--panel)),var(--panel) 60%)}
+  @media (max-width:760px){ .dp-hero{grid-template-columns:1fr;gap:10px} .dp-chips span{white-space:normal} .dp-barra-t .lg{display:none}
+    .dp-tog button{padding:5px 8px;font-size:11px} #v-depa .vp-tit{flex-wrap:wrap} }
+  .dp-escena{position:relative;height:230px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+  @media (max-width:760px){ .dp-escena{height:180px} }
+  .dp-sol{position:absolute;top:4px;left:6px;font-size:22px;animation:dpSol 9s ease-in-out infinite}
+  @keyframes dpSol{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(4px) rotate(25deg)}}
+  .dp-nube{position:absolute;top:22px;font-size:18px;opacity:.75;animation:dpNube 14s linear infinite}
+  @keyframes dpNube{from{left:-20%}to{left:105%}}
+  .dp-grua{font-size:28px;line-height:1;margin-bottom:-4px;transform-origin:30% 100%;animation:dpGrua 3.4s ease-in-out infinite;z-index:1}
+  @keyframes dpGrua{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+  .dp-grua.listo{animation:dpFiesta 1.6s ease-in-out infinite}
+  @keyframes dpFiesta{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+  .dp-edif{--ph:13px;position:relative;width:96px;display:flex;flex-direction:column-reverse;gap:3px;padding:6px 7px 0;border-radius:8px 8px 0 0;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--muted) 30%,var(--panel)),color-mix(in srgb,var(--muted) 45%,var(--panel)));
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--muted) 35%,transparent)}
+  @media (max-width:760px){ .dp-edif{width:84px;--ph:10px} }
+  .dp-piso{display:flex;gap:4px;justify-content:space-between}
+  .dp-piso i{flex:1;height:var(--ph);border-radius:2px;background:color-mix(in srgb,var(--muted) 55%,var(--panel));transition:background .4s}
+  .dp-piso i.on{background:#facc15;box-shadow:0 0 8px rgba(250,204,21,.75);animation:dpLuz .5s cubic-bezier(.2,.8,.2,1) both,dpTitila 4s ease-in-out infinite;
+    animation-delay:calc(var(--k,0)*45ms + .3s),calc(var(--k,0)*45ms + 1.2s)}
+  .dp-piso i.media{background:linear-gradient(90deg,#facc15 50%,color-mix(in srgb,var(--muted) 55%,var(--panel)) 50%)}
+  @keyframes dpLuz{from{background:color-mix(in srgb,var(--muted) 55%,var(--panel));box-shadow:none;transform:scale(.7)}to{transform:none}}
+  @keyframes dpTitila{0%,92%,100%{filter:none}95%{filter:brightness(.7)}}
+  .dp-puerta{align-self:center;width:18px;height:20px;border-radius:9px 9px 0 0;background:color-mix(in srgb,var(--sav) 60%,#000)}
+  .dp-marca{position:absolute;left:-10px;right:-10px;border-top:2px dashed var(--sav);z-index:2}
+  .dp-marca span{position:absolute;right:-6px;top:-11px;font-size:9.5px;font-weight:800;color:#fff;background:var(--sav);padding:1px 5px;border-radius:6px;transform:translateX(100%)}
+  .dp-suelo{width:100%;height:10px;border-radius:6px;background:linear-gradient(90deg,#4ade80,#16a34a);display:flex;justify-content:space-between;align-items:flex-end;padding:0 4px}
+  .dp-suelo span{font-size:18px;line-height:0;transform:translateY(-6px)}
+  .dp-tag{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--savSoft);color:var(--sav);margin-bottom:6px}
+  .dp-big{font-size:34px;font-weight:850;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+  @media (max-width:760px){ .dp-big{font-size:26px} }
+  .dp-barra{position:relative;height:16px;border-radius:999px;background:color-mix(in srgb,var(--muted) 18%,var(--panel));margin:16px 0 6px;box-shadow:inset 0 1px 3px rgba(0,0,0,.12)}
+  .dp-fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:999px;transition:width 1.8s cubic-bezier(.2,.8,.2,1);
+    background:linear-gradient(90deg,#22c55e,#16a34a 60%,#15803d);overflow:hidden}
+  .dp-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);background-size:200% 100%;animation:brillo 2.6s linear infinite}
+  .dp-hito{position:absolute;top:-7px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;z-index:1}
+  .dp-hito i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:15px;background:var(--panel);border:2px solid var(--line);transition:all .5s}
+  .dp-hito.ok i{border-color:var(--sav);background:var(--savSoft);animation:pop .6s cubic-bezier(.2,.8,.2,1) 1.4s both}
+  .dp-barra-t{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:22px;position:relative;height:16px}
+  .dp-barra-t span{position:absolute;transform:translateX(-50%);white-space:nowrap} .dp-barra-t span:first-child{transform:none;left:0} .dp-barra-t span:last-child{transform:none;right:0}
+  .dp-barra-t b{color:var(--text)}
+  .dp-chips{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+  .dp-chips span{font-size:11.5px;padding:5px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);white-space:nowrap} .dp-chips b{font-weight:800}
+  .dp-chips span{animation:entra .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*90ms + .5s)}
+  .dp-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  @media (max-width:1000px){ .dp-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px} }
+  .dp-tog{display:flex;background:color-mix(in srgb,var(--muted) 14%,var(--panel));border-radius:10px;padding:3px;gap:2px}
+  .dp-tog button{border:0;background:none;color:var(--muted);font-weight:700;font-size:12px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .25s}
+  .dp-tog button.on{background:var(--panel);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+  .dp-tl{list-style:none;margin:14px 0 0;padding:0 0 0 6px;position:relative}
+  .dp-tl::before{content:'';position:absolute;left:21px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--line)}
+  .dp-tl .dp-avance{position:absolute;left:21px;top:8px;width:3px;border-radius:3px;background:linear-gradient(180deg,#22c55e,#16a34a);height:0;transition:height 1.6s cubic-bezier(.2,.8,.2,1) .2s}
+  .dp-tl li{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;padding:8px 0;animation:dpEntraIzq .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*80ms)}
+  @keyframes dpEntraIzq{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+  .dp-tl .pt{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:15px;background:var(--panel);border:2px solid var(--line);z-index:1}
+  .dp-tl li.pasado .pt{border-color:var(--sav);background:var(--savSoft)}
+  .dp-tl li.prox .pt{border-color:var(--disp);background:var(--dispSoft);animation:dpPulso 2s ease-in-out infinite}
+  @keyframes dpPulso{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.45)}50%{box-shadow:0 0 0 8px rgba(217,119,6,0)}}
+  .dp-tl .cab{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .dp-tl .cuando{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .dp-tl li.prox .cuando{color:var(--disp)}
+  .dp-tl .tit{font-weight:700;margin-top:1px}
+  .dp-tl .txt{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .dp-tl .faltan{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--dispSoft);color:var(--disp);white-space:nowrap}
+  .dp-tl li.pasado .faltan{background:var(--savSoft);color:var(--sav)}
+  .dp-tl li.critico .tit::after{content:' ⚠️'}
+  .dp-anillo{position:relative;width:46px;height:46px;flex:none}
+  .dp-anillo svg{width:46px;height:46px;transform:rotate(-90deg)}
+  .dp-anillo circle{fill:none;stroke-width:5}
+  .dp-anillo .bg{stroke:var(--line)} .dp-anillo .fg{stroke:var(--sav);stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+  .dp-anillo b{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:800}
+  .dp-grupo{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px;display:flex;justify-content:space-between}
+  .dp-grupo:first-child{margin-top:0}
+  .dp-tarea{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:12px;cursor:pointer;transition:background .2s,transform .15s;position:relative;
+    animation:entra .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*50ms)}
+  .dp-tarea:hover{background:color-mix(in srgb,var(--muted) 10%,transparent)} .dp-tarea:active{transform:scale(.985)}
+  .dp-check{width:22px;height:22px;flex:none;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;transition:all .25s;margin-top:1px}
+  .dp-check svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .35s .1s}
+  .dp-tarea.hecha .dp-check{background:var(--sav);border-color:var(--sav)}
+  .dp-tarea.hecha .dp-check svg{stroke-dashoffset:0}
+  .dp-tarea.recien .dp-check{animation:pop .45s cubic-bezier(.2,.8,.2,1)}
+  .dp-tarea .tt{font-weight:600;font-size:13px;transition:color .3s}
+  .dp-tarea.hecha .tt{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+  .dp-tarea .td{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .dp-tarea .td a{color:var(--accent);font-weight:600}
+  .dp-tarea .et{font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;background:var(--incSoft);color:var(--inc);margin-left:4px;vertical-align:1px}
+  .dp-chispa{position:fixed;pointer-events:none;z-index:9999;font-size:16px;animation:dpChispa .9s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes dpChispa{from{transform:translate(0,0) scale(.5);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(var(--r));opacity:0}}
+  .dp-comp{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  .dp-comp .fila .et2{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px}
+  .dp-comp .fila .et2 b{font-variant-numeric:tabular-nums}
+  .dp-comp .riel{height:12px;border-radius:999px;background:color-mix(in srgb,var(--muted) 15%,var(--panel));overflow:hidden;position:relative}
+  .dp-comp .riel i{display:block;height:100%;border-radius:999px;transform-origin:left;animation:crece 1.2s cubic-bezier(.2,.8,.2,1) .4s both}
+  .dp-comp .riel .min{position:absolute;top:-3px;bottom:-3px;border-left:2px dashed var(--bad)}
+  .dp-nota{font-size:12px;color:var(--muted);margin-top:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--muted) 8%,transparent)}
+  .dp-nota b{color:var(--text)}
+  .dp-datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  @media (max-width:1000px){ .dp-datos{grid-template-columns:1fr} }
+  .dp-dato{border:1px solid var(--line);border-radius:14px;padding:12px 14px;transition:transform .25s,box-shadow .25s;animation:entra .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*90ms + .2s)}
+  .dp-dato:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
+  .dp-dato .ic{font-size:22px} .dp-dato h3{margin:4px 0 4px;font-size:14px}
+  .dp-dato p{margin:0;font-size:12.5px;color:var(--muted)} .dp-dato p b{color:var(--text)}
+  .dp-dato .vence{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--incSoft);color:var(--inc)}
+  #dpFuentes a{color:var(--accent);margin-right:10px;white-space:nowrap}
+  #v-depa.dp-quieta .dp-tl li,#v-depa.dp-quieta .dp-tarea,#v-depa.dp-quieta .dp-chips span,#v-depa.dp-quieta .dp-dato,#v-depa.dp-quieta .dp-comp .riel i,#v-depa.dp-quieta .dp-hito.ok i{animation:none}
+  #v-depa.dp-quieta .dp-piso i.on{animation:dpTitila 4s ease-in-out infinite}
+  #v-depa.dp-quieta .dp-tarea.recien .dp-check{animation:pop .45s cubic-bezier(.2,.8,.2,1)}
   @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important} #splash{display:none} }
 
   /* ===== Categorías ===== */
@@ -797,6 +907,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 16l20-7-3-2-7 3-5-4-2 1 3 5-4 1-2-1-1 1z"/><path d="M3 21h18"/></svg><span>Viajes</span></button>
       <button data-v="plan" class="extra">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l2 3h14l2-3"/><path d="M5 17V11h14v6"/><path d="M8 11V7h8v4"/><path d="M12 3v4"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1"/></svg><span>Plan de viaje</span></button>
+      <button data-v="depa" class="extra">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V6l8-3v18"/><path d="M12 21V9l8 3v9"/><path d="M2 21h20"/><path d="M7 8h2M7 12h2M7 16h2M15 14h2M15 17h2"/></svg><span>Departamento</span></button>
       <button data-v="mas" class="solo-movil" id="btMas">
         <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span>Más</span></button>
     </nav>
@@ -1087,6 +1199,50 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
             <div class="vg-kpis" id="vgKpis"></div>
             <div class="vg-grid"><div><h3 class="vg-h">Por categoría</h3><div id="vgCats"></div></div><div><h3 class="vg-h">Por día</h3><div id="vgDias"></div><h3 class="vg-h" style="margin-top:14px">Últimos gastos</h3><div id="vgLista"></div></div></div>
           </div>
+        </div>
+      </div>
+    </section>
+    <section id="v-depa" hidden>
+      <div class="tablero" data-sec="depa">
+        <div class="cuadro" data-id="dpHero" data-w="12" data-nombre="Tu depa">
+          <div class="panel dp-hero">
+            <div class="dp-escena"><span class="dp-sol">☀️</span><span class="dp-nube">☁️</span>
+              <span class="dp-grua" id="dpGrua">🏗️</span><div class="dp-edif" id="dpEdif"></div><div class="dp-suelo"><span>🌳</span><span>🌷</span></div></div>
+            <div class="dp-info">
+              <div class="dp-tag">🏠 Primer depto · Ñuñoa o Providencia</div>
+              <div class="fact-sub" style="margin:0 0 2px">Carpeta de ahorro <b>Departamento</b> (Global66)</div>
+              <div class="dp-big" id="dpSaldo">$0</div>
+              <div class="fact-sub" id="dpSaldoS"></div>
+              <div class="dp-barra"><div class="dp-fill" id="dpFill"></div>
+                <div class="dp-hito" id="dpHitoPie"><i>🔑</i></div><div class="dp-hito" id="dpHitoFin" style="left:100%"><i>🛋️</i></div></div>
+              <div class="dp-barra-t"><span>$0</span><span id="dpPieT"></span><span id="dpTotT"></span></div>
+              <div class="hero-chips dp-chips" id="dpChips"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cuadro" data-id="dpKpis" data-w="12" data-nombre="Resumen">
+          <div class="dp-kpis" id="dpKpis"></div>
+        </div>
+        <div class="cuadro" data-id="dpRuta" data-w="7" data-nombre="La ruta">
+          <div class="panel"><div class="vp-tit"><h2 class="izq" style="margin:0">🗺️ La ruta</h2>
+            <div class="dp-tog" id="dpTog"><button data-r="A">Ruta A · con DS1</button><button data-r="B">Ruta B · sin DS1</button></div></div>
+            <div class="fact-sub" id="dpRutaSub" style="margin-top:-4px"></div>
+            <ol class="dp-tl" id="dpTl"></ol></div>
+        </div>
+        <div class="cuadro" data-id="dpTareas" data-w="5" data-nombre="Tareas">
+          <div class="panel"><div class="vp-tit"><div><h2 class="izq" style="margin:0">✅ Tareas</h2><div class="fact-sub" id="dpTarSub"></div></div><div class="dp-anillo" id="dpAnillo"></div></div>
+            <div id="dpTareasL"></div></div>
+        </div>
+        <div class="cuadro" data-id="dpPlan" data-w="8" data-nombre="Plan de ahorro">
+          <div class="panel"><h2 class="izq">📈 Plan de ahorro 2027 vs real</h2><div class="fact-sub" id="dpPlanSub" style="margin:-6px 0 8px"></div>
+            <div class="chart" style="height:250px"><canvas id="cDepa"></canvas></div></div>
+        </div>
+        <div class="cuadro" data-id="dpDs1" data-w="4" data-nombre="Por qué el DS1">
+          <div class="panel"><h2 class="izq">💡 Por qué importa el DS1</h2><div id="dpDs1"></div></div>
+        </div>
+        <div class="cuadro" data-id="dpDatos" data-w="12" data-nombre="Datos clave">
+          <div class="panel"><h2 class="izq">📌 Datos clave (a octubre 2026)</h2><div class="dp-datos" id="dpDatos"></div>
+            <div class="fact-sub" id="dpFuentes" style="margin-top:12px"></div></div>
         </div>
       </div>
     </section>
@@ -1519,13 +1675,196 @@ function mesesHasta(v,obj,aporte,r){ if(v>=obj) return 0; for(let i=1;i<=600;i++
 function aporteNecesario(v,obj,r,n){ if(n<=0) return Math.max(0,obj-v); const i=r/12;
   if(!i) return Math.max(0,(obj-v)/n); const f=Math.pow(1+i,n); return Math.max(0,(obj-v*f)*i/(f-1)); }
 
+/* ================= DEPARTAMENTO ================= */
+/* Ruta para comprar el primer depto (documento del 29-10-2026). Se alimenta de la carpeta de ahorro "Departamento".
+   Las tareas marcadas se guardan junto al diseño (DIS._depa) y en el teléfono. */
+const DEPA={
+  carpeta:'Departamento', pie:8000000, total:18000000,
+  plan:[['2027-01',1270177],['2027-02',3028089],['2027-03',4927991],['2027-04',6827893],['2027-05',8727795],
+        ['2027-06',10627697],['2027-07',12527599],['2027-08',14427501],['2027-09',16327403],['2027-10',18227305]],
+  rutas:{
+    A:{sub:'Calificas dentro del 90% del Registro Social de Hogares: postulas al DS1 Tramo 4.000 (hasta 400 UF de subsidio).',hitos:[
+      {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
+      {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock (con recepción final) en Ñuñoa y Providencia, sin firmar nada.'},
+      {iso:'2027-01-25',cuando:'25 ene 2027',ic:'🏦',tit:'La Cuenta Ahorro Vivienda cumple 12 meses',txt:'Abierta el 25-01-2026 en BancoEstado.'},
+      {iso:'2027-05-31',cuando:'May 2027',ic:'🔑',tit:'Pie listo (~$8,7M, unos 200 UF)',txt:'El ahorro mínimo del DS1 está completo.',pie:true},
+      {iso:null,cuando:'2027 · por confirmar',ic:'📮',tit:'Postular al 2º llamado del DS1 Tramo 4.000',txt:'~10.000 cupos. Si el corte del ahorro cae antes de mayo, posterga un viaje para adelantar el ahorro.',critico:true},
+      {iso:'2027-10-31',cuando:'Oct 2027',ic:'🛋️',tit:'~$18M: plata para amoblar',txt:'O para gastos de escritura.',fin:true},
+      {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Último día para que la promesa cuente para la exención de IVA.',critico:true},
+      {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'FOGAES y el subsidio a la tasa rigen hasta esa fecha.',critico:true}]},
+    B:{sub:'Quedas sobre el 90% del Registro Social de Hogares: compras sin DS1, con FOGAES + subsidio a la tasa.',hitos:[
+      {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
+      {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock con IVA exento, sin firmar nada.'},
+      {iso:'2027-05-31',cuando:'Desde may 2027',ic:'🔑',tit:'Pie listo: comprar con FOGAES + subsidio a la tasa',txt:'Para subir el pie, suma parte de la plata de amoblar.',pie:true},
+      {iso:'2027-10-31',cuando:'Oct 2027',ic:'🛋️',tit:'~$18M ahorrados',txt:'Lo que no vaya al pie queda para amoblar.',fin:true},
+      {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Elige un depto en stock con IVA exento.',critico:true},
+      {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'Vigencia de FOGAES y subsidio a la tasa.',critico:true}]}
+  },
+  tareas:[
+    {g:'Paso 0 · noviembre 2026',id:'rsh',t:'Inscribirte o revisar tu tramo en el Registro Social de Hogares',d:'Para el DS1 tienes que estar dentro del 90%. Por renta y por vivir solo podrías quedar fuera. <a href="https://www.registrosocial.gob.cl" target="_blank" rel="noopener">registrosocial.gob.cl</a>'},
+    {g:'Paso 0 · noviembre 2026',id:'cav',t:'Depositar el ahorro mensual en la Cuenta Ahorro Vivienda (BancoEstado)',d:'No en una cuenta normal: esas lucas sirven a la vez de pie y de ahorro para el DS1.'},
+    {g:'Paso 0 · noviembre 2026',id:'preeval',t:'Pedir la pre-evaluación del crédito hipotecario',d:'Para saber cuánto te prestan de verdad (con ~$2M podría acercarse a 3.000 UF).'},
+    {g:'Desde diciembre 2026',id:'cotizar',t:'Cotizar deptos en stock en Ñuñoa y Providencia',d:'Con recepción municipal anterior al 17-10-2026 y en primera venta (IVA exento). Sin firmar nada.'},
+    {g:'Por confirmar',id:'cLlamado',t:'Fecha y condiciones del 2º llamado DS1 2027',d:'Corte del ahorro y si vuelven a exigir 12 meses de antigüedad a la cuenta.',r:'A'},
+    {g:'Por confirmar',id:'cIva',t:'¿Se puede combinar la exención de IVA con el DS1?',d:'Consultar al vendedor y al Serviu.',r:'A'},
+    {g:'Por confirmar',id:'cPromesa',t:'¿Se puede firmar promesa antes del resultado del DS1?',d:'Consultar al Serviu.',r:'A'},
+    {g:'2027 – 2028',id:'postular',t:'Postular al 2º llamado del DS1 Tramo 4.000',d:'En minvu.gob.cl con ClaveÚnica o en el Serviu.',r:'A'},
+    {g:'2027 – 2028',id:'promesa',t:'Firmar la promesa antes del 30-11-2027',d:'Para que aplique la exención de IVA.'},
+    {g:'2027 – 2028',id:'escritura',t:'Escriturar con FOGAES antes del 31-05-2028',d:'Vigencia de FOGAES y subsidio a la tasa.'}
+  ],
+  fuentes:[['La Tribuna · Requisitos DS1','https://www.latribuna.cl/economia/2026/10/22/subsidio-ds1-revisa-los-requisitos-para-comprar-viviendas-de-hasta-4000-uf.html'],
+    ['Sabes.cl · Postulación DS1','https://sabes.cl/2026/10/22/anuncian-fecha-de-postulacion-al-nuevo-tramo-del-ds1-quienes-pueden-acceder-al-subsidio-y-como-hacerlo'],
+    ['El Mostrador · DS1','https://www.elmostrador.cl/datos-utiles/2026/10/28/subsidio-ds1-desde-cuando-postular-al-nuevo-tramo-y-cuales-son-los-requisitos/'],
+    ['SII · Ley de Reconstrucción','https://www.sii.cl/noticias/2026/191026noti01pcr.htm'],
+    ['Círculo Verde · Ley 21.850','https://www.circuloverde.cl/vigencias-de-las-normas-tributarias-incluidas-en-la-ley-de-reconstruccion-nacional']]
+};
+function depaEstado(){
+  let s=null; try{ s=(DIS&&DIS._depa)||JSON.parse(localStorage.getItem('mfDepa')||'null'); }catch(e){}
+  s=s||{}; s.hechas=s.hechas||{}; s.ruta=s.ruta==='B'?'B':'A'; return s;
+}
+function depaGuardar(s){
+  DIS._depa=s; try{ localStorage.setItem('mfDepa',JSON.stringify(s)); }catch(e){}
+  guardarDis();
+}
+const hoyISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const diasA=iso=>Math.round((new Date(iso+'T12:00:00')-new Date(hoyISO()+'T12:00:00'))/864e5);
+const txtDias=n=>n===0?'hoy':n>0?(n>=60?'en '+Math.round(n/30.4)+' meses':'en '+n+' día'+(n>1?'s':'')):'hace '+(-n>=60?Math.round(-n/30.4)+' meses':-n+' día'+(-n>1?'s':''));
+
+function rDepaQuieto(){ DEPA._interno=true; $('v-depa').classList.add('dp-quieta'); try{ rDepa(); } finally { DEPA._interno=false; } }
+function rDepa(){
+  if(!DEPA._interno) $('v-depa').classList.remove('dp-quieta');
+  const quieta=!!DEPA._interno;
+  const st=depaEstado(), c=DEPA.carpeta, existe=!!(porCarpeta[c]||infoCarpeta[c]);
+  const saldo=existe?saldoHoy(c):0, pPie=Math.min(1,saldo/DEPA.pie), pTot=Math.min(1,saldo/DEPA.total);
+  const hoy=hoyISO();
+
+  /* ---- edificio: 10 pisos × 3 ventanas, se encienden según lo ahorrado sobre $18M ---- */
+  const N=10, V=3, luces=pTot*N*V, pisoPie=DEPA.pie/DEPA.total*N;
+  let h=''; for(let p=0;p<N;p++){ h+='<div class="dp-piso">'; for(let w=0;w<V;w++){ const k=p*V+w;
+    h+=`<i class="${k<Math.floor(luces)?'on':(k<luces?'media':'')}" style="--k:${k}"></i>`; } h+='</div>'; }
+  h+=`<div class="dp-marca" style="bottom:calc(23px + ${pisoPie.toFixed(2)} * (var(--ph) + 3px) - 1px)"><span>PIE</span></div>`;
+  $('dpEdif').innerHTML='<div class="dp-puerta"></div>'+h;   // column-reverse: el primero (la puerta) queda abajo
+  $('dpGrua').textContent=pTot>=1?'🎉':'🏗️'; $('dpGrua').classList.toggle('listo',pTot>=1);
+
+  /* ---- saldo y barra ---- */
+  contar($('dpSaldo'),saldo,CLP,1400);
+  $('dpSaldoS').innerHTML=existe?`de <b>${CLP(DEPA.total)}</b> en total · ${Math.round(pTot*100)}% del camino`:'Crea la carpeta <b>Departamento</b> en la hoja Carpetas para ver tu avance.';
+  const xPie=DEPA.pie/DEPA.total*100;
+  $('dpHitoPie').style.left=xPie+'%'; $('dpHitoPie').classList.toggle('ok',saldo>=DEPA.pie); $('dpHitoFin').classList.toggle('ok',saldo>=DEPA.total);
+  $('dpPieT').style.left=xPie+'%'; $('dpPieT').innerHTML='🔑 <span class="lg">Pie </span><b>'+corto$(DEPA.pie)+'</b>'; $('dpTotT').innerHTML='🛋️ <span class="lg">Amoblar </span><b>'+corto$(DEPA.total)+'</b>';
+  $('dpFill').style.width=quieta?(DEPA._fill||0)+'%':'0'; DEPA._fill=pTot*100;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$('dpFill').style.width=DEPA._fill+'%'));
+
+  /* ---- plan: dónde deberías ir ---- */
+  const planDe=k=>{ let v=null; DEPA.plan.forEach(([m,x])=>{ if(m<=k) v=x; }); return v; };
+  const enPlan=planDe(HOY), mesPie=(DEPA.plan.find(([,x])=>x>=DEPA.pie)||[])[0];
+  const rut=DEPA.rutas[st.ruta], prox=rut.hitos.find(x=>x.iso&&x.iso>=hoy);
+  const chips=[];
+  chips.push(saldo>=DEPA.pie?'🔑 <b>¡Pie listo!</b>':'Faltan <b>'+CLP(DEPA.pie-saldo)+'</b> para el pie');
+  if(enPlan==null) chips.push('📅 El plan de ahorro parte en <b>enero 2027</b>');
+  else { const dif=saldo-enPlan; chips.push(dif>=0?'🚀 Vas <b>'+CLP(dif)+'</b> adelante del plan':'🐢 Vas <b>'+CLP(-dif)+'</b> atrás del plan'); }
+  if(mesPie) chips.push('🎯 Pie según plan: <b>'+nombreMes(mesPie)+'</b>');
+  if(prox) chips.push('⏳ '+esc(prox.tit.split(':')[0])+' <b>'+txtDias(diasA(prox.iso))+'</b>');
+  $('dpChips').innerHTML=chips.map((x,i)=>`<span style="--i:${i}">${x}</span>`).join('');
+
+  /* ---- KPIs ---- */
+  const tareasR=DEPA.tareas.filter(t=>!t.r||t.r===st.ruta), listas=tareasR.filter(t=>st.hechas[t.id]).length;
+  const k12=diasA('2027-01-25');
+  $('dpKpis').innerHTML=
+    `<div class="kpi sav noSpark"><div class="kh">En la carpeta</div><div class="kv" id="dpK1"></div><div class="ks">${existe?'saldo de hoy · Global66':'sin carpeta'}</div></div>`+
+    `<div class="kpi inc noSpark"><div class="kh">Pie (meta ${corto$(DEPA.pie)})</div><div class="kv" id="dpK2"></div><div class="ks">${saldo>=DEPA.pie?'¡listo! 🎉':'faltan '+CLP(DEPA.pie-saldo)}</div></div>`+
+    `<div class="kpi disp noSpark"><div class="kh">Próximo hito</div><div class="kv">${prox?txtDias(diasA(prox.iso)):'—'}</div><div class="ks">${prox?esc(prox.tit):''}</div></div>`+
+    `<div class="kpi exp noSpark"><div class="kh">Cuenta Ahorro Vivienda</div><div class="kv">${k12>0?k12+' días':'✓ 12 meses'}</div><div class="ks">${k12>0?'para cumplir 12 meses (25-01-2027)':'ya cumplió la antigüedad'}</div></div>`;
+  contar($('dpK1'),saldo,CLP,1200); contar($('dpK2'),Math.round(pPie*100),v=>Math.round(v)+'%',1200);
+
+  /* ---- ruta (línea de tiempo) ---- */
+  $('dpTog').querySelectorAll('button').forEach(b=>{ b.classList.toggle('on',b.dataset.r===st.ruta);
+    b.onclick=()=>{ if(st.ruta===b.dataset.r) return; st.ruta=b.dataset.r; depaGuardar(st); rDepa(); }; });  // cambiar de ruta: se vuelve a animar la línea de tiempo
+  $('dpRutaSub').textContent=rut.sub;
+  let ultimoPasado=-1;
+  const items=rut.hitos.map((x,i)=>{
+    let cl='futuro';
+    if(x.pie&&saldo>=DEPA.pie) cl='pasado';
+    else if(x.fin&&saldo>=DEPA.total) cl='pasado';
+    else if(x.iso&&x.iso<hoy&&!x.pie&&!x.fin) cl='pasado';
+    if(cl==='pasado') ultimoPasado=i;
+    return {...x,cl};
+  });
+  const iProx=items.findIndex(x=>x.cl!=='pasado'); if(iProx>=0) items[iProx].cl='prox';
+  $('dpTl').innerHTML='<div class="dp-avance" id="dpAv"></div>'+items.map((x,i)=>{
+    const d=x.iso?diasA(x.iso):null;
+    const badge=x.cl==='pasado'?'<span class="faltan">✓ listo</span>':d!=null?`<span class="faltan">${txtDias(d)}</span>`:'<span class="faltan">por confirmar</span>';
+    return `<li class="${x.cl}${x.critico?' critico':''}" style="--i:${i}"><div class="pt">${x.cl==='pasado'?'✓':x.ic}</div>
+      <div><div class="cab"><span class="cuando">${esc(x.cuando)}</span>${badge}</div><div class="tit">${esc(x.tit)}</div><div class="txt">${esc(x.txt)}</div></div></li>`; }).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const L=[...$('dpTl').querySelectorAll('li')], ref=L[Math.max(0,iProx>=0?iProx:L.length-1)];
+    if(ref) $('dpAv').style.height=(ref.offsetTop+16-8)+'px'; }));
+
+  /* ---- tareas ---- */
+  const grupos=[...new Set(tareasR.map(t=>t.g))];
+  let n=0;
+  $('dpTareasL').innerHTML=grupos.map(g=>{ const ts=tareasR.filter(t=>t.g===g);
+    return `<div class="dp-grupo"><span>${esc(g)}</span><span>${ts.filter(t=>st.hechas[t.id]).length}/${ts.length}</span></div>`+
+      ts.map(t=>`<div class="dp-tarea${st.hechas[t.id]?' hecha':''}" data-t="${t.id}" style="--i:${n++}" role="checkbox" aria-checked="${!!st.hechas[t.id]}" tabindex="0">
+        <div class="dp-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+        <div><div class="tt">${esc(t.t)}${t.r?'<span class="et">Ruta '+t.r+'</span>':''}</div><div class="td">${t.d}</div></div></div>`).join(''); }).join('');
+  const pT=tareasR.length?listas/tareasR.length:0, R=18, C=2*Math.PI*R;
+  $('dpAnillo').innerHTML=`<svg viewBox="0 0 46 46"><circle class="bg" cx="23" cy="23" r="${R}"/><circle class="fg" cx="23" cy="23" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-(quieta?(DEPA._pT||0):0))}"/></svg><b>${listas}/${tareasR.length}</b>`;
+  DEPA._pT=pT; requestAnimationFrame(()=>requestAnimationFrame(()=>{ const fg=$('dpAnillo').querySelector('.fg'); if(fg) fg.style.strokeDashoffset=C*(1-pT); }));
+  $('dpTarSub').textContent=listas===tareasR.length?'¡Todo al día! 🎉':'Toca una tarea cuando la termines';
+  $('dpTareasL').querySelectorAll('.dp-tarea').forEach(el=>{
+    const alternar=e=>{ if(e.target.closest('a')) return; const id=el.dataset.t, on=!st.hechas[id];
+      if(on) st.hechas[id]=hoy; else delete st.hechas[id];
+      depaGuardar(st);
+      if(on){ chispas(el.querySelector('.dp-check')); toast('✅ Tarea lista'); }
+      rDepaQuieto(); const nuevo=$('dpTareasL').querySelector(`[data-t="${id}"]`); if(nuevo&&on) nuevo.classList.add('recien'); };
+    el.onclick=alternar; el.onkeydown=e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); alternar(e); } };
+  });
+
+  /* ---- gráfico plan vs real ---- */
+  const ini=sumarMeses(HOY,-2)<'2026-09'?'2026-09':sumarMeses(HOY,-2), meses2=[]; for(let k=ini;k<='2027-10';k=sumarMeses(k,1)) meses2.push(k);
+  const real=meses2.map(k=>existe&&k<=HOY&&tieneDatosAl(c,k)?(k===HOY?saldo:saldoMes(c,k)):null);
+  const plan=meses2.map(k=>{ const x=DEPA.plan.find(([m])=>m===k); return x?x[1]:null; });
+  grafico('cDepa',{type:'line',data:{labels:meses2.map(k=>MESES[+k.slice(5)-1].slice(0,3)+' '+k.slice(2,4)),datasets:[
+    {label:'Proyección del plan',data:plan,borderColor:css('--inc'),backgroundColor:'transparent',borderDash:[6,5],borderWidth:2,pointRadius:3,tension:.3,spanGaps:true},
+    {label:'Real (carpeta Departamento)',data:real,borderColor:css('--sav'),backgroundColor:'rgba(22,163,74,.14)',fill:true,borderWidth:3,pointRadius:4,tension:.3,spanGaps:true},
+    {label:'Meta pie',data:meses2.map(()=>DEPA.pie),borderColor:'#f59e0b',borderWidth:1.5,borderDash:[2,4],pointRadius:0,fill:false},
+    {label:'Meta amoblar',data:meses2.map(()=>DEPA.total),borderColor:'#a855f7',borderWidth:1.5,borderDash:[2,4],pointRadius:0,fill:false}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10}},
+      tooltip:{filter:i=>i.raw!=null,callbacks:{label:i=>' '+i.dataset.label+': '+CLP(i.raw)}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>corto$(v)},grid:{color:css('--line')}},x:{grid:{display:false}}}}});
+  $('dpPlanSub').textContent='Escenario elegido: viajes de US$1.000 c/u · pie '+CLP(DEPA.pie)+' y luego '+CLP(DEPA.total-DEPA.pie)+' para amoblar.';
+
+  /* ---- por qué el DS1 ---- */
+  $('dpDs1').innerHTML=`<div class="fact-sub" style="margin:-4px 0 10px">Pie sobre un depto de 4.000 UF</div><div class="dp-comp">
+    <div class="fila"><div class="et2"><span>Con DS1 · 200 UF + 400 UF</span><b>15%</b></div><div class="riel"><i style="width:${15/20*100}%;background:linear-gradient(90deg,#22c55e,#15803d)"></i><span class="min" style="left:${10/20*100}%"></span></div></div>
+    <div class="fila"><div class="et2"><span>Sin DS1 · solo tus ~$8M</span><b>~5%</b></div><div class="riel"><i style="width:${5/20*100}%;background:linear-gradient(90deg,#f87171,#dc2626)"></i><span class="min" style="left:${10/20*100}%"></span></div></div>
+    <div class="fact-sub"><span style="color:var(--bad)">┆</span> FOGAES pide en general al menos 10% de pie</div></div>
+    <div class="dp-nota">Sin DS1, los $8M alcanzan para un depto de <b>~2.000 UF</b>, difícil de encontrar en Ñuñoa o Providencia.</div>
+    <div class="dp-nota">💸 <b>Dividendo:</b> 4.000 UF al 85%, ~4% a 30 años ≈ <b>$700 mil</b>. Con tope de 25% de la renta, con ~$2M el crédito podría acercarse a <b>3.000 UF</b>.</div>`;
+
+  /* ---- datos clave ---- */
+  const dato=(ic,tit,txt,vence,i)=>`<div class="dp-dato" style="--i:${i}"><div class="ic">${ic}</div><h3>${tit}</h3><p>${txt}</p>${vence?`<span class="vence">${vence}</span>`:''}</div>`;
+  $('dpDatos').innerHTML=
+    dato('🏛️','DS1 Tramo 4.000','Aporte de hasta <b>400 UF</b> para viviendas de hasta 4.000 UF. Pide ahorro mínimo de <b>200 UF (~$8,24M)</b> y estar dentro del <b>90% del RSH</b>. Sin tope de ingresos. Si compras antes, pierdes el derecho. El 1er llamado (corte 30-10-2026) no alcanza; el 2º sería en 2027 con ~10.000 cupos.','2º llamado 2027 · por confirmar',0)+
+    dato('🧾','Exención de IVA · Ley 21.850','Del <b>01-12-2026 al 30-11-2027</b> (sirve una promesa firmada en ese plazo). Solo viviendas nuevas con recepción definitiva anterior al 17-10-2026 y en primera venta. La aplica el vendedor si quiere.','Promesa '+txtDias(diasA('2027-11-30')),1)+
+    dato('🛡️','FOGAES + subsidio a la tasa','Garantía estatal que permite financiar con menos pie y rebaja de tasa. Vigentes hasta el <b>31-05-2028</b>.','Vence '+txtDias(diasA('2028-05-31')),2);
+  $('dpFuentes').innerHTML='Fuentes: '+DEPA.fuentes.map(([t,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join('');
+}
+function chispas(el){
+  if(!el||quieto) return; const r=el.getBoundingClientRect(), E=['✨','🎉','🏠','⭐','🔑'];
+  for(let i=0;i<10;i++){ const s=document.createElement('span'); s.className='dp-chispa'; s.textContent=E[i%E.length];
+    const a=Math.random()*Math.PI*2, d=40+Math.random()*50;
+    s.style.cssText=`left:${r.left+r.width/2-8}px;top:${r.top+r.height/2-10}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-20}px;--r:${(Math.random()-.5)*120}deg`;
+    document.body.appendChild(s); setTimeout(()=>s.remove(),950); }
+}
+
 /* ================= render ================= */
 function render(){
   $('hoy').textContent=new Date().toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
-  $('periodo').textContent=['metas','dolar','cal','sim','subs','plan'].includes(vista)?'Al día de hoy':vista==='viajes'?'Todo el historial':etiquetaPeriodo();
+  $('periodo').textContent=['metas','dolar','cal','sim','subs','plan','depa'].includes(vista)?'Al día de hoy':vista==='viajes'?'Todo el historial':etiquetaPeriodo();
   document.querySelectorAll('main section').forEach(s=>s.hidden=s.id!=='v-'+vista);
-  $('titulo').textContent={inicio:'Hola de nuevo 👋',movs:'Gastos y movimientos',cuotas:'Cuotas y deuda',metas:'Ahorro y metas',dolar:'Dólar 💵',cal:'Calendario de pagos 📅',sim:'¿Me alcanza? 🛍️',subs:'Suscripciones 🔁',viajes:'Viajes ✈️',plan:'Plan de viaje 🛳️'}[vista];
-  ({inicio:rInicio,movs:rMovs,cuotas:rCuotas,metas:rAhorro,dolar:rDolar,cal:rCal,sim:rSim,subs:rSubs,viajes:rViajes,plan:rPlanViaje})[vista]();
+  $('titulo').textContent={inicio:'Hola de nuevo 👋',movs:'Gastos y movimientos',cuotas:'Cuotas y deuda',metas:'Ahorro y metas',dolar:'Dólar 💵',cal:'Calendario de pagos 📅',sim:'¿Me alcanza? 🛍️',subs:'Suscripciones 🔁',viajes:'Viajes ✈️',plan:'Plan de viaje 🛳️',depa:'Departamento 🏠'}[vista];
+  ({inicio:rInicio,movs:rMovs,cuotas:rCuotas,metas:rAhorro,dolar:rDolar,cal:rCal,sim:rSim,subs:rSubs,viajes:rViajes,plan:rPlanViaje,depa:rDepa})[vista]();
   if(vista!==vistaAnim){ vistaAnim=vista; animarEntrada($('v-'+vista)); }
 }
 let vistaAnim=null;
@@ -3175,7 +3514,7 @@ function aplicarDiseno(){
 }
 function leerDisActual(){ const o={}; document.querySelectorAll('.tablero').forEach(t=>o[t.dataset.sec]=[...t.children].map(el=>({id:el.dataset.id,w:+el.dataset.w,o:el.dataset.oculto==='1'?1:0}))); return o; }
 function guardarDis(){
-  DIS=leerDisActual();
+  const dp=DIS&&DIS._depa; DIS=leerDisActual(); if(dp) DIS._depa=dp;   // conserva las tareas del Departamento
   try{ localStorage.setItem('diseno',JSON.stringify(DIS)); }catch(e){}
   clearTimeout(tGuardar); tGuardar=setTimeout(()=>google.script.run.withFailureHandler(()=>{}).guardarDiseno(DIS),800);
 }
