@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.02-1435";
+window.MF_VERSION = "2026.11.02-1450";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2675,7 +2675,8 @@ function rPlanViaje(){
   const cascada=capMeses.length>0, prog={}, capIni={}, capLib={}, asegMes={};
   // la tabla muestra cada sueldo en el mes en que LLEGA (el del 30-oct va en octubre, aunque sea la plata de noviembre)
   const dk=k=>D.config.sueldoAdelantado!==false?sumarMeses(k,-1):k, dMeses=capMeses.map(dk);
-  const pagadoEn=k=>suma(pm.filter(p=>p.tipo==='Pago'&&p.pagado&&p.fecha.slice(0,7)===k&&dueno(p)&&info[dueno(p)]),vV);
+  const conTarjeta=p=>/💳|pagad[oa] con (la )?tarjeta/i.test(p.nota||'');   // pagado con tarjeta: ya lo descuenta la cuenta de la tarjeta, no se resta otra vez del sueldo
+  const pagadoEn=k=>suma(pm.filter(p=>p.tipo==='Pago'&&p.pagado&&!conTarjeta(p)&&p.fecha.slice(0,7)===k&&dueno(p)&&info[dueno(p)]),vV);
   capMeses.forEach(k=>{ const d=dk(k); capIni[d]=capacidadReal(k); capLib[d]=Math.max(0,capIni[d]-pagadoEn(d)); });
   if(cascada){
     const orden=[]; [...new Set(items.map(x=>x.seccion))].filter(sn=>!/^cubiert/i.test(sn)).forEach(sn=>items.filter(x=>x.seccion===sn&&x.suma&&info[x.concepto]).forEach(x=>orden.push(x.concepto)));
