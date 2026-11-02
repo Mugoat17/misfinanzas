@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.02-1450";
+window.MF_VERSION = "2026.11.02-1500";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2092,19 +2092,19 @@ function retirosTarjeta(k){
   return suma((D.ahorro||[]).filter(a=>a.mov==='Retiro'&&!a.alDisp&&/tarjeta/i.test(a.nota||'')).filter(a=>{
     let km=mesKey(a.fecha); if(adel&&+a.fecha.slice(8,10)>=20) km=sumarMeses(km,1); return sumarMeses(km,1)===k; }),a=>aCLP(a.carpeta,a.monto,k));
 }
-function capacidadMes(k){
+function capacidadMes(k,neto){
   const sueldo=sueldoProm||D.config.sueldo||0, tarj=suma(Object.values(tarjetasMes(k)),x=>x.monto||0);
   const base=suma((D.fijos||[]).filter(f=>f.tipo!=='Crédito'&&(f.frecuencia!=='Anual'||f.mes===+k.slice(5))),f=>f.monto||0);
   // suscripciones en tarjeta de crédito: aún no están en las cuotas del mes futuro → se suman (se pagan el mes siguiente al cobro)
   const mesPago=f=>(((f.mes||1)-1+((f.dia||1)>=24?2:1))%12)+1;   // cobro después del cierre (~24) → se paga 2 meses después
   const subsCred=suma((D.fijos||[]).filter(f=>f.tipo==='Crédito'&&(f.frecuencia!=='Anual'||mesPago(f)===+k.slice(5))),f=>f.monto||0);
-  return Math.max(0,sueldo-tarj-subsCred-base-limiteMes(k)+retirosTarjeta(k));
+  const r=sueldo-tarj-subsCred-base-limiteMes(k)+retirosTarjeta(k); return neto?r:Math.max(0,r);
 }
 /* Igual, pero si el sueldo del mes ya llegó usa tus datos reales (y descuenta lo que ya moviste a tus carpetas: eso ya cuenta como ahorrado). */
-function capacidadReal(k){
+function capacidadReal(k,neto){
   const P=presuMes(k);
-  if(P.m.ing>0) return Math.max(0,P.queda-limiteMes(k)+retirosTarjeta(k));
-  return capacidadMes(k);
+  if(P.m.ing>0){ const r=P.queda-limiteMes(k)+retirosTarjeta(k); return neto?r:Math.max(0,r); }
+  return capacidadMes(k,neto);
 }
 function rPresupuesto(k){
   const P=presuMes(k), m=P.m, lim=limiteMes(k), gast=P.gast, ex=extraDisp(k);
@@ -2677,7 +2677,10 @@ function rPlanViaje(){
   const dk=k=>D.config.sueldoAdelantado!==false?sumarMeses(k,-1):k, dMeses=capMeses.map(dk);
   const conTarjeta=p=>/💳|pagad[oa] con (la )?tarjeta/i.test(p.nota||'');   // pagado con tarjeta: ya lo descuenta la cuenta de la tarjeta, no se resta otra vez del sueldo
   const pagadoEn=k=>suma(pm.filter(p=>p.tipo==='Pago'&&p.pagado&&!conTarjeta(p)&&p.fecha.slice(0,7)===k&&dueno(p)&&info[dueno(p)]),vV);
-  capMeses.forEach(k=>{ const d=dk(k); capIni[d]=capacidadReal(k); capLib[d]=Math.max(0,capIni[d]-pagadoEn(d)); });
+  capMeses.forEach(k=>{ const d=dk(k); capIni[d]=capacidadReal(k,true); capLib[d]=capIni[d]-pagadoEn(d); });
+  // si un mes queda en negativo (ej. la tarjeta trae los pasajes en 1 cuota), esa plata se guarda de los sueldos anteriores
+  for(let i=dMeses.length-1;i>0;i--){ const k=dMeses[i]; if(capLib[k]<0){ capLib[dMeses[i-1]]+=capLib[k]; capLib[k]=0; } }
+  dMeses.forEach(k=>{ capIni[k]=Math.max(0,capIni[k]); });
   if(cascada){
     const orden=[]; [...new Set(items.map(x=>x.seccion))].filter(sn=>!/^cubiert/i.test(sn)).forEach(sn=>items.filter(x=>x.seccion===sn&&x.suma&&info[x.concepto]).forEach(x=>orden.push(x.concepto)));
     orden.forEach(conc=>{ const o=info[conc]; let rem=o.queda;
