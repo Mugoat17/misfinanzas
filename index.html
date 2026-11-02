@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.10.29-1130";
+window.MF_VERSION = "2026.11.02-1435";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2078,7 +2078,7 @@ function extraDisp(k){
   return (D.ahorro||[]).filter(a=>a.alDisp&&a.mov==='Retiro').filter(a=>{let km=mesKey(a.fecha); if(adel&&+a.fecha.slice(8,10)>=20) km=sumarMeses(km,1); return km===k;});
 }
 /* Disponible base del mes: en los meses del viaje usa "Viaje disponible" (ej. 150.000 para los dos); si no, el de siempre. */
-function bolsilloMes(k){ const c=D.viaje&&D.viaje.cfg; return (c&&c.disponible>0&&modoViaje(k))?c.disponible:(D.config.bolsillo||100000); }
+function bolsilloMes(k){ const c=D.viaje&&D.viaje.cfg; return (c&&c.disponible>0&&modoViaje(k)&&(!c.fin||k<=c.fin.slice(0,7)))?c.disponible:(D.config.bolsillo||100000); }   // después del mes en que termina el viaje vuelve el disponible normal, aunque ese sueldo siga yendo al viaje
 const limiteMes=k=>bolsilloMes(k)+suma(extraDisp(k),a=>aCLP(a.carpeta,a.monto,k));
 /* Modo viaje: desde "Viaje ahorro desde" hasta el mes en que termina el viaje, todo lo que iba al Depa va al viaje. Después se retoma el Depa. */
 /* Hasta qué mes (de presupuesto) todo va al viaje: "Viaje ahorro hasta" en Config, o el mes en que termina el viaje. */
