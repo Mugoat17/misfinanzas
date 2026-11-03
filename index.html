@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1510";
+window.MF_VERSION = "2026.11.03-1520";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2199,7 +2199,7 @@ function colorCuenta(n){ const s=quitaT(n);
   if(/global/.test(s)) return '#7c4dff'; if(/mach|tenpo|mercado/.test(s)) return '#0ea5a4'; return '#9aa3ad'; }
 function quitaT(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
 /* Qué cuenta del reporte corresponde a cada saldo (por banco: Santander / Banco de Chile / Global66). */
-function bancoDe(n){ const s=quitaT(n); return /santander/.test(s)?'santander':/global/.test(s)?'global66':/chile|bch|fan/.test(s)?'bancochile':s; }
+function bancoDe(n){ const s=quitaT(n); return /santander/.test(s)?'santander':/global/.test(s)?'global66':(/chile|bch/.test(s)&&!/fan/.test(s)&&/cta\.? ?cte|corriente/.test(s))?'bancochile-cc':/chile|bch|fan/.test(s)?'bancochile':s; }   // la cuenta corriente del Banco de Chile (ahorro) va aparte de la FAN
 /* Saldo de cada cuenta hoy = última foto de la hoja Saldos − compras con débito + ingresos posteriores a esa foto. */
 function saldoCuentaHoy(s){
   const b=bancoDe(s.cuenta), f=s.fecha.length>10?s.fecha:s.fecha+' 23:59';
