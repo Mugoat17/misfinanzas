@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1535";
+window.MF_VERSION = "2026.11.03-1615";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -74,6 +74,20 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
     --disp:#d97706; --dispSoft:#fdf3dc;
     --good:#15803d; --goodSoft:#dcfce7; --bad:#dc2626; --badSoft:#fee2e2; --warn:#f59e0b;
   }
+
+  .rango-mov{margin-bottom:14px;padding:14px 16px}
+  .rango-mov .rg-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .rango-mov .rg-top span{color:var(--muted);font-size:13px;flex:1;min-width:150px}
+  .rango-mov .rg-top button{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+  .rg-slider{position:relative;height:34px;margin:6px 4px 2px}
+  .rg-track{position:absolute;left:0;right:0;top:15px;height:6px;border-radius:6px;background:var(--line)}
+  .rg-fill{position:absolute;top:0;bottom:0;border-radius:6px;background:var(--accent);transition:left .08s,width .08s}
+  .rg-slider input[type=range]{position:absolute;left:0;top:6px;width:100%;margin:0;height:24px;background:none;-webkit-appearance:none;appearance:none;pointer-events:none}
+  .rg-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:24px;height:24px;border-radius:50%;background:var(--panel);border:3px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:grab}
+  .rg-slider input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;background:var(--panel);border:3px solid var(--accent);cursor:grab}
+  .rg-slider input[type=range]::-webkit-slider-runnable-track{background:none}
+  .rg-fechas{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .rg-fechas input{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 6px;margin-left:4px}
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#08110c; --panel:#111c16; --text:#e9f5ee; --muted:#93a69a; --line:#203027;
@@ -998,6 +1012,12 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 
     <!-- ================= GASTOS ================= -->
     <section id="v-movs" hidden>
+      <div class="panel rango-mov" id="rangoMov">
+        <div class="rg-top"><b>📅 Rango de fechas</b><span id="rgTxt"></span><button type="button" id="rgReset">Todo el período</button></div>
+        <div class="rg-slider"><div class="rg-track"><div class="rg-fill" id="rgFill"></div></div>
+          <input type="range" id="rgA" min="0" max="0" value="0" aria-label="Desde"><input type="range" id="rgB" min="0" max="0" value="0" aria-label="Hasta"></div>
+        <div class="rg-fechas"><label>Desde <input type="date" id="rgIni"></label><label>Hasta <input type="date" id="rgFin"></label></div>
+      </div>
       <div class="tablero" data-sec="movs">
         <div class="cuadro" data-id="mTotK" data-w="4" data-nombre="Gastado">
           <div class="kpi exp noSpark"><div class="kh">Gastado</div><div class="kv" id="mTot"></div><div class="ks" id="mN"></div></div>
@@ -3152,22 +3172,64 @@ function rCatInicio(P){
 }
 
 /* ================= GASTOS ================= */
+/* Rango de fechas de Movimientos: una línea con dos manillas dentro del período elegido (mes, año o todo). */
+let rangoMov={base:'',ini:'',fin:''};
+const isoDia=(d)=>d.toISOString().slice(0,10), diaUTC=s=>new Date(s+'T00:00:00Z');
+const sumaDias=(s,n)=>{ const d=diaUTC(s); d.setUTCDate(d.getUTCDate()+n); return isoDia(d); };
+const difDias=(a,b)=>Math.round((diaUTC(b)-diaUTC(a))/864e5);
+function limitesPeriodo(P){
+  if(!P.length) return [HOY+'-01',HOY+'-01'];
+  const a=P[0]+'-01', [y,m]=P[P.length-1].split('-').map(Number), b=P[P.length-1]+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0');
+  return [a,b];
+}
+function pintarRango(min,max){
+  const n=Math.max(0,difDias(min,max)), a=difDias(min,rangoMov.ini), b=difDias(min,rangoMov.fin);
+  ['rgA','rgB'].forEach(id=>{ $(id).max=n; });
+  $('rgA').value=a; $('rgB').value=b;
+  const pa=n?a/n*100:0, pb=n?b/n*100:100; $('rgFill').style.left=pa+'%'; $('rgFill').style.width=Math.max(0,pb-pa)+'%';
+  ['rgIni','rgFin'].forEach(id=>{ $(id).min=min; $(id).max=max; });
+  $('rgIni').value=rangoMov.ini; $('rgFin').value=rangoMov.fin;
+  const f=x=>x.slice(8,10)+'-'+x.slice(5,7)+'-'+x.slice(0,4), dias=difDias(rangoMov.ini,rangoMov.fin)+1;
+  $('rgTxt').textContent=f(rangoMov.ini)+' → '+f(rangoMov.fin)+' · '+dias+' día'+(dias===1?'':'s');
+  $('rgReset').hidden=rangoMov.ini===min&&rangoMov.fin===max;
+}
+let rgT=null; const rgRender=()=>{ clearTimeout(rgT); rgT=setTimeout(rMovs,120); };
+function rangoDesdeSlider(cual){
+  const P=periodo(), [min]=limitesPeriodo(P); let a=+$('rgA').value, b=+$('rgB').value;
+  if(a>b){ if(cual==='a') a=b; else b=a; $('rgA').value=a; $('rgB').value=b; }
+  rangoMov.ini=sumaDias(min,a); rangoMov.fin=sumaDias(min,b);
+  const [mn,mx]=limitesPeriodo(P); pintarRango(mn,mx); rgRender();
+}
+$('rgA').addEventListener('input',()=>rangoDesdeSlider('a'));
+$('rgB').addEventListener('input',()=>rangoDesdeSlider('b'));
+['rgIni','rgFin'].forEach(id=>$(id).addEventListener('change',()=>{ const [mn,mx]=limitesPeriodo(periodo());
+  let i=$('rgIni').value||mn, f=$('rgFin').value||mx; i=i<mn?mn:i>mx?mx:i; f=f<mn?mn:f>mx?mx:f; if(i>f){ if(id==='rgIni') f=i; else i=f; }
+  rangoMov.ini=i; rangoMov.fin=f; pintarRango(mn,mx); rMovs(); }));
+$('rgReset').onclick=()=>{ rangoMov.base=''; rMovs(); };
 function rMovs(){
-  const P=periodo(), movs=movsDe(P);
+  const P=periodo(), [rMin,rMax]=limitesPeriodo(P), base=P.join(',');
+  if(rangoMov.base!==base){ rangoMov={base,ini:rMin,fin:rMax}; }
+  pintarRango(rMin,rMax);
+  const enRango=m=>{ const d=m.fecha.slice(0,10); return d>=rangoMov.ini&&d<=rangoMov.fin; };
+  const recortado=rangoMov.ini!==rMin||rangoMov.fin!==rMax;
+  const movs=movsDe(P).filter(enRango);
   const deb=suma(movs.filter(m=>m.tipo!=='Crédito'),m=>m.valor), cred=suma(movs.filter(m=>m.tipo==='Crédito'),m=>m.valor);
   $('mTot').textContent=CLP(deb+cred); $('mN').textContent=movs.length+' movimientos';
   $('mDeb').textContent=CLP(deb); $('mCred').textContent=CLP(cred);
   const agrupar=lista=>{const o={}; lista.forEach(m=>o[m.tarjeta]=(o[m.tarjeta]||0)+m.valor); return o;};
-  if(P.length===1){
-    const[y,m]=P[0].split('-').map(Number), dias=new Date(y,m,0).getDate(), porDia={};
-    movs.forEach(mv=>{const d=+mv.fecha.slice(8,10); (porDia[d]=porDia[d]||[]).push(mv);});
-    const ds=Array.from({length:dias},(_,i)=>i+1);
+  const nDias=difDias(rangoMov.ini,rangoMov.fin)+1;
+  if(P.length===1||nDias<=62){   // por día (un mes, o un rango corto)
+    const porDia={}; movs.forEach(mv=>{const d=mv.fecha.slice(0,10); (porDia[d]=porDia[d]||[]).push(mv);});
+    const ds=Array.from({length:nDias},(_,i)=>sumaDias(rangoMov.ini,i));
     $('tBarras').textContent='Gasto por día';
-    barrasTarjetas('cBarras',ds,ds,d=>agrupar(porDia[d]||[]));
+    barrasTarjetas('cBarras',ds.map(d=>P.length===1?String(+d.slice(8,10)):d.slice(8,10)+'-'+d.slice(5,7)),ds,d=>agrupar(porDia[d]||[]));
   } else {
     $('tBarras').textContent='Gasto por mes';
-    barrasTarjetas('cBarras',P.map(cortoMes),P,k=>agrupar(porMes[k]||[]));
+    const Ks=P.filter(k=>k>=rangoMov.ini.slice(0,7)&&k<=rangoMov.fin.slice(0,7)), porK={};
+    movs.forEach(mv=>{const k=mesKey(mv.fecha); (porK[k]=porK[k]||[]).push(mv);});
+    barrasTarjetas('cBarras',Ks.map(cortoMes),Ks,k=>agrupar(porK[k]||[]));
   }
+  if(recortado) $('tBarras').textContent+=' · '+$('rgTxt').textContent.split(' · ')[0];
   $('claveBarras').innerHTML=claveTipos();
   dona('cTarj','lTarj','totTarj',porTarjetaItems(agrupar(movs)));
   dona('cTipo','lTipo','totTipo',[{nombre:'Débito',valor:deb,color:css('--accent'),credito:false},{nombre:'Crédito',valor:cred,color:css('--accent'),credito:true}]);
