@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.02-1505";
+window.MF_VERSION = "2026.11.03-1510";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2090,7 +2090,8 @@ function modoViaje(k){ const c=D.viaje&&D.viaje.cfg; if(!c||!c.ahorroDesde) retu
 function retirosTarjeta(k){
   const adel=D.config.sueldoAdelantado!==false;
   return suma((D.ahorro||[]).filter(a=>a.mov==='Retiro'&&!a.alDisp&&/tarjeta/i.test(a.nota||'')).filter(a=>{
-    let km=mesKey(a.fecha); if(adel&&+a.fecha.slice(8,10)>=20) km=sumarMeses(km,1); return sumarMeses(km,1)===k; }),a=>aCLP(a.carpeta,a.monto,k));
+    let km=mesKey(a.fecha); if(adel&&+a.fecha.slice(8,10)>=20) km=sumarMeses(km,1);
+    return (/este mes/i.test(a.nota||'')?km:sumarMeses(km,1))===k; }),a=>aCLP(a.carpeta,a.monto,k));   // "este mes" en la nota: la tarjeta se pagó (adelantó) el mismo mes del retiro
 }
 function capacidadMes(k,neto){
   const sueldo=sueldoProm||D.config.sueldo||0, tarj=suma(Object.values(tarjetasMes(k)),x=>x.monto||0);
