@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1520";
+window.MF_VERSION = "2026.11.03-1535";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1056,7 +1056,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
           <div class="kpi sav noSpark"><div class="kh">Compras activas</div><div class="kv" id="qAct"></div><div class="ks">con cuotas por pagar</div></div>
         </div>
         <div class="cuadro" data-id="proy" data-w="12" data-nombre="Cuotas próximos 12 meses">
-          <div class="panel"><h2>Cuotas por pagar · próximos 12 meses</h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
+          <div class="panel"><h2>Cuotas por pagar · próximos 12 meses <small style="font-weight:400;color:var(--muted)">· en verde lo que ya pagaste o adelantaste</small></h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
         </div>
         <div class="cuadro" data-id="tablaCuotas" data-w="12" data-nombre="Compras con cuotas">
           <div class="panel"><h2 class="izq">Compras con cuotas pendientes</h2><div class="tj-row" id="qTarjetas"></div><div id="tCuotas"></div></div>
@@ -1971,6 +1971,34 @@ function barrasTarjetas(id,labels,claves,valorDe){
       plugins:{legend:leyendaChart,etiquetas:{modo:'total'},
         tooltip:{...tip,displayColors:true,callbacks:{label:c=>' '+c.dataset.label+': '+CLP(c.raw),
           footer:it=>'Total: '+CLP(suma(it,x=>x.raw))},filter:i=>i.raw>0}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{maxRotation:0,autoSkip:true}},y:ejeY(true)}}});
+}
+/* Lo facturado de cada tarjeta en el mes k y cuánto ya pagaste/adelantaste:
+   estado de cuenta real → monto y "monto pagado"; estimado → cuotas del mes y abonos del mes anterior. */
+function facturaYPagado(k){
+  const est={}; (cuotasMap[k]||[]).forEach(c=>est[c.m.tarjeta]=(est[c.m.tarjeta]||0)+c.m.valorCuota);
+  const real={}; (D.facturas||[]).filter(f=>f.vence&&mesKey(f.vence)===k&&!f.faltaMonto).forEach(f=>{ const r=real[f.tarjeta]=real[f.tarjeta]||{fact:0,pag:0};
+    const m=Math.max(0,f.monto); r.fact+=m; r.pag+=Math.min(m,Math.max(0,f.montoPagado||0)); });
+  const cred=abonosDe(sumarMeses(k,-1)), out={};
+  new Set([...Object.keys(est),...Object.keys(real)]).forEach(t=>{
+    if(real[t]) out[t]=real[t];
+    else { const f=est[t]||0; out[t]={fact:f,pag:Math.min(f,cred[t]||0)}; } });
+  return out;
+}
+function barrasCuotasPagadas(id,meses){
+  const F=meses.map(facturaYPagado);
+  const tarjetas=[...new Set(F.flatMap(o=>Object.keys(o)))].sort((a,b)=>suma(F,o=>(o[b]||{}).fact||0)-suma(F,o=>(o[a]||{}).fact||0));
+  const verde=css('--sav');
+  const sets=[{label:'✓ Pagado / adelantado',data:F.map(o=>suma(Object.values(o),x=>x.pag)),backgroundColor:alpha(verde,.85),borderColor:verde,borderWidth:1,borderRadius:3,stack:'s',maxBarThickness:30,_pag:true}]
+    .concat(tarjetas.map(t=>{ const c=colorTarjeta(t);
+      return {label:t+' · por pagar',data:F.map(o=>Math.max(0,((o[t]||{}).fact||0)-((o[t]||{}).pag||0))),backgroundColor:relleno(c,esCred(t)),borderColor:c,
+        borderWidth:esCred(t)?1:0,borderRadius:3,stack:'s',maxBarThickness:30}; }));
+  grafico(id,{type:'bar',data:{labels:meses.map(cortoMes),datasets:sets},
+    options:{maintainAspectRatio:false,layout:{padding:{top:16}},
+      plugins:{legend:leyendaChart,etiquetas:{modo:'total'},
+        tooltip:{...tip,displayColors:true,callbacks:{label:c=>' '+c.dataset.label+': '+CLP(c.raw),
+          footer:it=>{ if(!it.length) return ''; const o=F[it[0].dataIndex], fa=suma(Object.values(o),x=>x.fact), pa=suma(Object.values(o),x=>x.pag);
+            return 'Facturado: '+CLP(fa)+'\nPagado/adelantado: '+CLP(pa)+'\nFalta pagar: '+CLP(fa-pa); }},filter:i=>i.raw>0}},
       scales:{x:{stacked:true,grid:{display:false},ticks:{maxRotation:0,autoSkip:true}},y:ejeY(true)}}});
 }
 const claveTipos=()=>`<span>${swatch(css('--muted'),false)} Débito (sólido)</span><span>${swatch(css('--muted'),true)} Crédito (rayado)</span>`;
@@ -3175,7 +3203,7 @@ function rCuotas(){
   const act=D.movimientos.filter(m=>m.tipo==='Crédito'&&cuotasPend(m,HOY)>0), actCuotas=act.filter(m=>m.cuotas>1);
   $('qAct').textContent=actCuotas.length;
   const prox=Array.from({length:12},(_,i)=>sumarMeses(HOY,i));
-  barrasTarjetas('cProy',prox.map(cortoMes),prox,pagoTarjetasMes);   // real del estado de cuenta si ya llegó; si no, cuotas − abonos adelantados
+  barrasCuotasPagadas('cProy',prox);   // cada barra = lo facturado del mes; abajo, en verde, lo que ya pagaste o adelantaste
   const filas=act.filter(m=>m.cuotas>1);
   { const porT={}; filas.forEach(m=>(porT[m.tarjeta]=porT[m.tarjeta]||[]).push(m));
     Object.keys(tm).forEach(t=>porT[t]=porT[t]||[]);
