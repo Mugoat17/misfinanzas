@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1625";
+window.MF_VERSION = "2026.11.03-1710";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -3278,7 +3278,7 @@ function rCuotas(){
   barrasCuotasPagadas('cProy',prox);   // cada barra = lo facturado del mes; abajo, en verde, lo que ya pagaste o adelantaste
   const filas=act.filter(m=>m.cuotas>1);
   { const porT={}; filas.forEach(m=>(porT[m.tarjeta]=porT[m.tarjeta]||[]).push(m));
-    Object.keys(tm).forEach(t=>porT[t]=porT[t]||[]);
+    Object.keys(tm).filter(t=>(tm[t]||{}).monto>0).forEach(t=>porT[t]=porT[t]||[]);   // una tarjeta sin cuotas y sin nada que pagar este mes no se muestra
     $('qTarjetas').innerHTML=Object.keys(porT).map(t=>{ const L=porT[t], deuda=suma(L,m=>cuotasPend(m,HOY)*m.valorCuota), mes=(tm[t]||{}).monto||0;
       return `<div class="tj" style="--c:${colorTarjeta(t)}"><div class="tj-in">
         <div class="tj-f"><div style="display:flex;justify-content:space-between;align-items:center"><span class="nom">${esc(t)}</span><span class="chip"></span></div>
