@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1615";
+window.MF_VERSION = "2026.11.03-1625";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1013,7 +1013,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
     <!-- ================= GASTOS ================= -->
     <section id="v-movs" hidden>
       <div class="panel rango-mov" id="rangoMov">
-        <div class="rg-top"><b>📅 Rango de fechas</b><span id="rgTxt"></span><button type="button" id="rgReset">Todo el período</button></div>
+        <div class="rg-top"><b>📅 Rango de fechas</b><span id="rgTxt"></span><button type="button" id="rgReset">Volver al mes elegido</button><button type="button" id="rgTodo">Todo el historial</button></div>
         <div class="rg-slider"><div class="rg-track"><div class="rg-fill" id="rgFill"></div></div>
           <input type="range" id="rgA" min="0" max="0" value="0" aria-label="Desde"><input type="range" id="rgB" min="0" max="0" value="0" aria-label="Hasta"></div>
         <div class="rg-fechas"><label>Desde <input type="date" id="rgIni"></label><label>Hasta <input type="date" id="rgFin"></label></div>
@@ -3191,28 +3191,38 @@ function pintarRango(min,max){
   $('rgIni').value=rangoMov.ini; $('rgFin').value=rangoMov.fin;
   const f=x=>x.slice(8,10)+'-'+x.slice(5,7)+'-'+x.slice(0,4), dias=difDias(rangoMov.ini,rangoMov.fin)+1;
   $('rgTxt').textContent=f(rangoMov.ini)+' → '+f(rangoMov.fin)+' · '+dias+' día'+(dias===1?'':'s');
-  $('rgReset').hidden=rangoMov.ini===min&&rangoMov.fin===max;
+  $('rgTodo').hidden=rangoMov.ini===min&&rangoMov.fin===max;
 }
 let rgT=null; const rgRender=()=>{ clearTimeout(rgT); rgT=setTimeout(rMovs,120); };
+/* La línea abarca TODO tu historial (de tu primer movimiento a hoy): Año/Mes solo eligen dónde parten las manillas. */
+function limitesTodo(){
+  const fs=(D.movimientos||[]).map(m=>m.fecha.slice(0,10)).filter(Boolean).sort();
+  const hoy=isoDia(new Date(Date.now()-new Date().getTimezoneOffset()*6e4));
+  return [fs[0]||hoy, fs.length&&fs[fs.length-1]>hoy?fs[fs.length-1]:hoy];
+}
 function rangoDesdeSlider(cual){
-  const P=periodo(), [min]=limitesPeriodo(P); let a=+$('rgA').value, b=+$('rgB').value;
+  const [min,max]=limitesTodo(); let a=+$('rgA').value, b=+$('rgB').value;
   if(a>b){ if(cual==='a') a=b; else b=a; $('rgA').value=a; $('rgB').value=b; }
   rangoMov.ini=sumaDias(min,a); rangoMov.fin=sumaDias(min,b);
-  const [mn,mx]=limitesPeriodo(P); pintarRango(mn,mx); rgRender();
+  pintarRango(min,max); rgRender();
 }
 $('rgA').addEventListener('input',()=>rangoDesdeSlider('a'));
 $('rgB').addEventListener('input',()=>rangoDesdeSlider('b'));
-['rgIni','rgFin'].forEach(id=>$(id).addEventListener('change',()=>{ const [mn,mx]=limitesPeriodo(periodo());
+['rgIni','rgFin'].forEach(id=>$(id).addEventListener('change',()=>{ const [mn,mx]=limitesTodo();
   let i=$('rgIni').value||mn, f=$('rgFin').value||mx; i=i<mn?mn:i>mx?mx:i; f=f<mn?mn:f>mx?mx:f; if(i>f){ if(id==='rgIni') f=i; else i=f; }
   rangoMov.ini=i; rangoMov.fin=f; pintarRango(mn,mx); rMovs(); }));
 $('rgReset').onclick=()=>{ rangoMov.base=''; rMovs(); };
+$('rgTodo')&&($('rgTodo').onclick=()=>{ const [a,b]=limitesTodo(); rangoMov.ini=a; rangoMov.fin=b; rMovs(); });
 function rMovs(){
-  const P=periodo(), [rMin,rMax]=limitesPeriodo(P), base=P.join(',');
-  if(rangoMov.base!==base){ rangoMov={base,ini:rMin,fin:rMax}; }
-  pintarRango(rMin,rMax);
+  const Pp=periodo(), [pMin,pMax]=limitesPeriodo(Pp), [tMin,tMax]=limitesTodo(), base=Pp.join(',');
+  const clamp=x=>x<tMin?tMin:x>tMax?tMax:x;
+  if(rangoMov.base!==base){ rangoMov={base,ini:clamp(pMin),fin:clamp(pMax)}; }   // cambiaste Año/Mes: las manillas saltan a ese período
+  pintarRango(tMin,tMax);
   const enRango=m=>{ const d=m.fecha.slice(0,10); return d>=rangoMov.ini&&d<=rangoMov.fin; };
-  const recortado=rangoMov.ini!==rMin||rangoMov.fin!==rMax;
-  const movs=movsDe(P).filter(enRango);
+  const recortado=rangoMov.ini!==clamp(pMin)||rangoMov.fin!==clamp(pMax);
+  const movs=D.movimientos.filter(enRango).sort((a,b)=>a.fecha<b.fecha?1:-1);
+  const P=[]; for(let k=rangoMov.ini.slice(0,7);k<=rangoMov.fin.slice(0,7);k=sumarMeses(k,1)) P.push(k);
+  $('rgReset').hidden=!recortado;
   const deb=suma(movs.filter(m=>m.tipo!=='Crédito'),m=>m.valor), cred=suma(movs.filter(m=>m.tipo==='Crédito'),m=>m.valor);
   $('mTot').textContent=CLP(deb+cred); $('mN').textContent=movs.length+' movimientos';
   $('mDeb').textContent=CLP(deb); $('mCred').textContent=CLP(cred);
@@ -3225,7 +3235,7 @@ function rMovs(){
     barrasTarjetas('cBarras',ds.map(d=>P.length===1?String(+d.slice(8,10)):d.slice(8,10)+'-'+d.slice(5,7)),ds,d=>agrupar(porDia[d]||[]));
   } else {
     $('tBarras').textContent='Gasto por mes';
-    const Ks=P.filter(k=>k>=rangoMov.ini.slice(0,7)&&k<=rangoMov.fin.slice(0,7)), porK={};
+    const Ks=P, porK={};
     movs.forEach(mv=>{const k=mesKey(mv.fecha); (porK[k]=porK[k]||[]).push(mv);});
     barrasTarjetas('cBarras',Ks.map(cortoMes),Ks,k=>agrupar(porK[k]||[]));
   }
