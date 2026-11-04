@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.03-1710";
+window.MF_VERSION = "2026.11.04-2015";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2302,7 +2302,16 @@ function rInicio(){
     prevGasto=suma((porMes[prevK]||[]).filter(m=>+m.fecha.slice(8,10)<=dia),m=>m.valor); nota=' · vs mismo día mes anterior'; }
   kpi('Exp',T.gasto||0,s6.map(x=>x.gasto),prevGasto,false,css('--exp'));
   $('sExp').textContent=movsDe(P).length+' movimientos'+nota;
-  kpi('Disp',T.disp||0,s6.map(x=>x.disp),prev.disp,true,css('--disp'),sueldo);
+  /* Disponible del mes actual = lo que tienes en la Cuenta FAN (ahí dejas tus disponibles del mes); otros meses: el cálculo del mes. */
+  const fan=(D.saldos||[]).filter(x=>/fan/i.test(x.cuenta)).sort((a,b)=>a.fecha<b.fecha?-1:1).pop();
+  if(mesUnico()&&ult===HOY&&fan){
+    const sf=saldoCuentaHoy(fan).saldo, lim=limiteMes(HOY);
+    kpi('Disp',sf,s6.map(x=>x.disp),0,true,css('--disp'),true);
+    document.querySelector('.kpi.disp .ks').textContent='lo que tienes en la Cuenta FAN para el mes · meta '+CLP(lim);
+  } else {
+    kpi('Disp',T.disp||0,s6.map(x=>x.disp),prev.disp,true,css('--disp'),sueldo);
+    document.querySelector('.kpi.disp .ks').textContent='ingresos − débito − cuotas − ahorro − abonos';
+  }
   rDist(); rHero(ult); rCatInicio(P); rPendientes();
 
   const meta=D.metas[0];
