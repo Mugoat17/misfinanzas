@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.06-1335";
+window.MF_VERSION = "2026.11.06-1345";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -89,6 +89,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   .rg-fechas{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
   .rg-fechas input{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 6px;margin-left:4px}
   #vpTabla td.fijo{box-shadow:inset 0 0 0 2px var(--accent)} #vpTabla td.fijo::after{content:'📌';font-size:9px;margin-left:2px}
+  #vpTabla th small.vp-sl{display:block;font-size:9px;font-weight:500;opacity:.75;white-space:nowrap}
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#08110c; --panel:#111c16; --text:#e9f5ee; --muted:#93a69a; --line:#203027;
@@ -2809,7 +2810,7 @@ function rPlanViaje(){
   let h='<thead><tr><th rowspan="3" class="fc">Concepto</th><th rowspan="3">USD</th><th rowspan="3">CLP</th><th rowspan="3">Ahorrado</th><th rowspan="3">Falta</th>'+
     anios.map(y=>`<th class="y" colspan="${meses.filter(k=>k.startsWith(y)).length}">${y}</th>`).join('')+
     (diasV.length?`<th class="y" colspan="${diasV.length*2}">Durante el viaje</th>`:'')+'</tr><tr>'+
-    meses.map((k,i)=>`<th rowspan="2" class="${i===0||k.endsWith('-01')?'bl':''} ${k===HOY?'hoy':''}">${MESES[+k.slice(5)-1]}</th>`).join('')+
+    meses.map((k,i)=>`<th rowspan="2" class="${i===0||k.endsWith('-01')?'bl':''} ${k===HOY?'hoy':''}" ${cascada&&dMeses.includes(k)?`title="Sueldo que llega a fin de ${MESES[+k.slice(5)-1].toLowerCase()}${k===dMeses[0]?' (es la plata que estás usando ahora)':''}"`:''}>${MESES[+k.slice(5)-1]}${cascada&&dMeses.includes(k)?`<small class="vp-sl">${k===dMeses[0]&&k<HOY?'💰 sueldo actual':'💰 sueldo fin de mes'}</small>`:''}</th>`).join('')+
     diasV.map(f=>`<th colspan="2" class="y dia">${+f.slice(8,10)+' '+MESES[+f.slice(5,7)-1].slice(0,3).toLowerCase()}</th>`).join('')+'</tr><tr>'+
     diasV.map(()=>'<th class="bl dia">USD</th><th class="dia">CLP</th>').join('')+'</tr></thead><tbody>';
   const fmt=v=>v?CLP(v):'';

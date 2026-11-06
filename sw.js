@@ -1,4 +1,4 @@
-const C = 'misfinanzas-2026.11.06-1335';
+const C = 'misfinanzas-2026.11.06-1345';
 const BASE = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(BASE)).catch(() => {})); self.skipWaiting(); });
