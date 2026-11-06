@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.06-1300";
+window.MF_VERSION = "2026.11.06-1335";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2722,10 +2722,11 @@ function rPlanViaje(){
       const L=sec.length?sec.map(i=>i.concepto):[conceptos.find(c=>vpN(c)===vpN(t))||conceptos.find(c=>vpMatch(c,t))].filter(Boolean);
       L.forEach(c=>{ if(!out.includes(c)) out.push(c); }); });
     return out; };
+  const esEfe=x=>{ const c=(D.carpetas||[]).find(c=>c.carpeta===x.carpeta); return !!c&&/efectivo/i.test(c.cuenta||''); };   // ahorro en efectivo (ej. los dólares)
   items.filter(x=>vpEsCub(x)&&x.cubre).forEach(x=>{
-    let resto=vpClp(x);
+    let resto=vpClp(x); const efe=esEfe(x);
     destinos(x.cubre).forEach(d=>{ const o=info[d]; if(!o||resto<=0.5) return;
-      const take=Math.max(0,Math.min(resto,o.falta-o.aseg)); if(take<=0) return; o.aseg+=take; resto-=take;
+      const take=Math.max(0,Math.min(resto,o.falta-o.aseg)); if(take<=0) return; o.aseg+=take; resto-=take; if(efe) o.efe=(o.efe||0)+take;
       let r2=take;   // pinta las celdas pendientes de ese ítem con lo asegurado
       [...pm.filter(p=>p.tipo==='Pago'&&!p.pagado&&dueno(p)===d), ...pv.filter(p=>!p.pagado&&dueno(p)===d)].forEach(p=>{
         const ya=asegFila.get(p)||0, c=Math.max(0,Math.min(r2,vV(p)-ya)); r2-=c; asegFila.set(p,ya+c); });
@@ -2824,6 +2825,7 @@ function rPlanViaje(){
   const chip=x=>{ const o=info[x.concepto]; if(!o||vpEsCub(x)) return '';
     if(cascada&&o.sinCubrir>0.5) return `<span class="cp cpr">⚠ ${CLP(o.sinCubrir)} no alcanzan antes del viaje</span>`;
     if(o.falta<0.5&&o.pagado>0) return '<span class="cp cpv">✓ pagado</span>';
+    if(o.queda<0.5&&o.efe>=o.falta-0.5) return '<span class="cp cpv">✓ cubierto con efectivo</span>';
     if(o.queda<0.5&&o.aseg>0) return '<span class="cp cpv">✓ asegurado</span>';
     const pc=o.valor?Math.round((o.pagado+o.aseg)/o.valor*100):0; return pc>0?`<span class="cp cpv">✓ ${pc}%</span>`:''; };
   const itemFila=x=>{ const o=info[x.concepto], esUsd=x.usd>0&&!x.clp&&!x.carpeta;
@@ -2900,7 +2902,8 @@ function vpAplicarColores(){
     const r=td.parentNode.dataset.r, o=V.celda[r+'|'+td.dataset.col];
     td.classList.remove('pag','cub','auto','prog','fijo'); td.style.backgroundImage=''; td.title='';
     if(o&&o.tot>0){ const cub=o.pag+o.aseg, pc=Math.min(100,Math.round(cub/o.tot*100));
-      if(o.pag>=o.tot-0.5){ td.classList.add('pag'); td.title='✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
+      const itE=V.item[r], efeOk=itE&&itE.efe>0&&itE.efe>=itE.falta-0.5&&cub>=o.tot-0.5;   // cubierto entero con efectivo: se ve como pagado
+      if(o.pag>=o.tot-0.5||efeOk){ td.classList.add('pag'); td.title=efeOk&&o.pag<o.tot-0.5?'✓ Cubierto con efectivo (dólares)':'✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
         if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } }
       else if(pc>=100){ td.classList.add('cub'); td.title='✓ Asegurado con ahorro'; }
       else if(pc>0){ td.style.backgroundImage=`linear-gradient(90deg, color-mix(in srgb, ${verde} 32%, transparent) ${pc}%, transparent ${pc}%)`; td.title=`Cubierto ${CLP(cub)} de ${CLP(o.tot)} (${pc}%) · falta ${CLP(o.tot-cub)}`; }
@@ -2909,7 +2912,9 @@ function vpAplicarColores(){
       if(o.prog&&vpCascAnim){ const i=[...td.parentNode.children].indexOf(td), f=[...td.closest('tbody').children].indexOf(td.parentNode); td.style.setProperty('--d',(i*.09+f*.03).toFixed(2)+'s'); td.classList.remove('cae'); void td.offsetWidth; td.classList.add('cae'); }
       if(o.auto){ td.classList.add('auto'); td.title=(td.title?td.title+' · ':'')+'Último pago: la app pone lo que falta'; } }
     const it=td.dataset.col==='lbl'&&V.item[r];
-    if(it&&it.valor>0){ if(it.falta<0.5) { td.classList.add('pag'); td.title='✓ Todo pagado'; } else if(it.queda<0.5){ td.classList.add('cub'); td.title='✓ Todo asegurado'; }
+    if(it&&it.valor>0){ if(it.falta<0.5) { td.classList.add('pag'); td.title='✓ Todo pagado'; }
+      else if(it.queda<0.5&&it.efe>=it.falta-0.5){ td.classList.add('pag'); td.title='✓ Cubierto con efectivo (dólares)'; const kk=r+'|lbl'; ahora.add(kk);
+        if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } } else if(it.queda<0.5){ td.classList.add('cub'); td.title='✓ Todo asegurado'; }
       else td.title=`Pagado ${CLP(it.pagado)} · ahorrado ${CLP(it.aseg)} · falta ${CLP(it.queda)}`; }
     const c=C[r+'|'+td.dataset.col]||C[r+'|*'];
     if(c){ td.style.setProperty('background-color',c,'important'); td.style.backgroundImage='none'; } else td.style.removeProperty('background-color'); td.classList.toggle('pint',!!c);
