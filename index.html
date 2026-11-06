@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.04-2015";
+window.MF_VERSION = "2026.11.06-1300";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -88,6 +88,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   .rg-slider input[type=range]::-webkit-slider-runnable-track{background:none}
   .rg-fechas{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
   .rg-fechas input{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 6px;margin-left:4px}
+  #vpTabla td.fijo{box-shadow:inset 0 0 0 2px var(--accent)} #vpTabla td.fijo::after{content:'📌';font-size:9px;margin-left:2px}
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#08110c; --panel:#111c16; --text:#e9f5ee; --muted:#93a69a; --line:#203027;
@@ -2701,7 +2702,7 @@ function rPlanViaje(){
   const val=new Map(), auto=new Set(), info={};
   plan.forEach(p=>val.set(p,vpPlanClp(p)));
   items.filter(x=>!vpEsCub(x)).forEach(x=>{
-    const pagos=pm.filter(p=>p.tipo==='Pago'&&dueno(p)===x.concepto), hechos=pagos.filter(p=>p.pagado), pend=pagos.filter(p=>!p.pagado);
+    const pagos=pm.filter(p=>p.tipo==='Pago'&&dueno(p)===x.concepto), hechos=pagos.filter(p=>p.pagado), pend=pagos.filter(p=>!p.pagado&&!vpFijo(p));
     const pagado=suma(hechos,vpPlanClp);
     let falta;
     if(x.usd>0&&!x.clp&&!x.carpeta){ const usdPag=suma(hechos,p=>p.usd||(p.clp||0)/dol); falta=Math.max(0,(x.usd-usdPag)*dol); }   // precio en dólares: falta lo que queda en USD × dólar de hoy
@@ -2734,7 +2735,7 @@ function rPlanViaje(){
   /* ---------- CASCADA: lo que te queda cada mes (sueldo − deudas − fijos − disponible) se va al viaje.
      Llena lo que falta de cada ítem en el orden de la tabla (de arriba hacia abajo); lo que no alcanza pasa al mes siguiente. ---------- */
   const capMeses=[]; if(c.ahorroDesde){ for(let k=HOY;k<=finViaje();k=sumarMeses(k,1)) if(modoViaje(k)) capMeses.push(k); }
-  const cascada=capMeses.length>0, prog={}, capIni={}, capLib={}, asegMes={};
+  const cascada=capMeses.length>0, prog={}, capIni={}, capLib={}, asegMes={}; vpFijos={};
   // la tabla muestra cada sueldo en el mes en que LLEGA (el del 30-oct va en octubre, aunque sea la plata de noviembre)
   const dk=k=>D.config.sueldoAdelantado!==false?sumarMeses(k,-1):k, dMeses=capMeses.map(dk);
   const conTarjeta=p=>/💳|pagad[oa] con (la )?tarjeta/i.test(p.nota||'');   // pagado con tarjeta: ya lo descuenta la cuenta de la tarjeta, no se resta otra vez del sueldo
@@ -2745,7 +2746,14 @@ function rPlanViaje(){
   dMeses.forEach(k=>{ capIni[k]=Math.max(0,capIni[k]); });
   if(cascada){
     const orden=[]; [...new Set(items.map(x=>x.seccion))].filter(sn=>!/^cubiert/i.test(sn)).forEach(sn=>items.filter(x=>x.seccion===sn&&x.suma&&info[x.concepto]).forEach(x=>orden.push(x.concepto)));
-    orden.forEach(conc=>{ const o=info[conc]; let rem=o.queda;
+    // 📌 lo que TÚ moviste a un mes queda fijo ahí; el resto lo reparte la cascada
+    const fijoRem={};
+    pm.filter(p=>p.tipo==='Pago'&&!p.pagado&&vpFijo(p)&&info[dueno(p)]).forEach(p=>{ const conc=dueno(p), o=info[conc];
+      const usado=fijoRem[conc]||0, t=Math.min(vV(p)||vpPlanClp(p),Math.max(0,o.queda-usado)); if(t<0.5) return;
+      const k=dMeses.includes(p.fecha.slice(0,7))?p.fecha.slice(0,7):(p.fecha.slice(0,7)<dMeses[0]?dMeses[0]:dMeses[dMeses.length-1]);
+      (prog[conc]=prog[conc]||{})[k]=((prog[conc]||{})[k]||0)+t; capLib[k]-=t; fijoRem[conc]=usado+t;
+      (vpFijos[conc+'|'+k]=vpFijos[conc+'|'+k]||[]).push(p.fila); });
+    orden.forEach(conc=>{ const o=info[conc]; let rem=o.queda-(fijoRem[conc]||0);
       dMeses.forEach(k=>{ const t=Math.min(rem,capLib[k]); if(t>0.5){ (prog[conc]=prog[conc]||{})[k]=t; capLib[k]-=t; rem-=t; } });
       o.sinCubrir=Math.max(0,rem); });
   }
@@ -2762,7 +2770,8 @@ function rPlanViaje(){
     const k=p.fecha.slice(0,7)<HOY?HOY:p.fecha.slice(0,7), kk=conc+'|'+k, x=vpCov.celda[kk]   // si el pago quedó en un mes pasado, lo ahorrado se ve en el mes actual
    =vpCov.celda[kk]||{tot:0,pag:0,aseg:0,auto:false};
     x.tot+=o.aseg; x.aseg+=o.aseg; asegMes[conc]={[k]:o.aseg}; (vpCov.filas[kk]=vpCov.filas[kk]||[]).push(p.fila); });
-  Object.entries(prog).forEach(([conc,o])=>Object.entries(o).forEach(([k,v])=>{ const kk=conc+'|'+k, x=vpCov.celda[kk]=vpCov.celda[kk]||{tot:0,pag:0,aseg:0,auto:false}; x.tot+=v; x.prog=(x.prog||0)+v; }));
+  Object.entries(prog).forEach(([conc,o])=>Object.entries(o).forEach(([k,v])=>{ const kk=conc+'|'+k, x=vpCov.celda[kk]=vpCov.celda[kk]||{tot:0,pag:0,aseg:0,auto:false}; x.tot+=v; x.prog=(x.prog||0)+v;
+    if(vpFijos[kk]){ x.fijo=true; (vpCov.filas[kk]=vpCov.filas[kk]||[]).push(...vpFijos[kk]); } }));
 
   // totales
   const gasto=items.filter(x=>!vpEsCub(x)&&x.suma), cub=items.filter(x=>vpEsCub(x)&&x.suma);
@@ -2879,7 +2888,9 @@ function rPlanViaje(){
 }
 /* ---- pintar celdas (los colores se guardan en Config → "Viaje colores") ---- */
 const VP_PINT=['#fef08a','#bbf7d0','#bfdbfe','#fecaca','#fed7aa','#e9d5ff','#fbcfe8','#e5e7eb'];
-var vpPinCol=VP_PINT[0], vpGuardaCol=null, vpCov=null, vpArr=null, vpSel=null, vpCascAnim=false;
+var vpPinCol=VP_PINT[0], vpGuardaCol=null, vpCov=null, vpArr=null, vpSel=null, vpCascAnim=false, vpFijos={};
+/* 📌 Pago pendiente que fijaste tú en un mes (nota con 📌): la cascada lo respeta. */
+const vpFijo=p=>/📌/.test(p.nota||'');
 const vpCols=()=>{ D.viaje.cfg.colores=D.viaje.cfg.colores||{}; return D.viaje.cfg.colores; };
 /* Verde = pagado (fuerte) o asegurado con ahorro (suave); parcial = barra verde hasta el %; el último pendiente dice "falta" */
 function vpAplicarColores(){
@@ -2887,13 +2898,14 @@ function vpAplicarColores(){
   const C=(D.viaje&&D.viaje.cfg.colores)||{}, V=vpCov||{celda:{},item:{}}, verde=css('--sav');
   $('vpTabla').querySelectorAll('tr[data-r] td[data-col]').forEach(td=>{
     const r=td.parentNode.dataset.r, o=V.celda[r+'|'+td.dataset.col];
-    td.classList.remove('pag','cub','auto','prog'); td.style.backgroundImage=''; td.title='';
+    td.classList.remove('pag','cub','auto','prog','fijo'); td.style.backgroundImage=''; td.title='';
     if(o&&o.tot>0){ const cub=o.pag+o.aseg, pc=Math.min(100,Math.round(cub/o.tot*100));
       if(o.pag>=o.tot-0.5){ td.classList.add('pag'); td.title='✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
         if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } }
       else if(pc>=100){ td.classList.add('cub'); td.title='✓ Asegurado con ahorro'; }
       else if(pc>0){ td.style.backgroundImage=`linear-gradient(90deg, color-mix(in srgb, ${verde} 32%, transparent) ${pc}%, transparent ${pc}%)`; td.title=`Cubierto ${CLP(cub)} de ${CLP(o.tot)} (${pc}%) · falta ${CLP(o.tot-cub)}`; }
-      if(o.prog&&o.pag<0.5&&o.aseg<0.5){ td.classList.add('prog'); td.title='Programado: sale del restante de este mes. Tócalo cuando lo pagues.'; }
+      if(o.prog&&o.pag<0.5&&o.aseg<0.5){ td.classList.add('prog'); td.title=o.fijo?'📌 Lo moviste tú a este mes. Con ✥ Mover lo cambias de mes; tócalo cuando lo pagues.':'Programado: sale del restante de este mes. Con ✥ Mover lo pasas a otro mes; tócalo cuando lo pagues.'; }
+      td.classList.toggle('fijo',!!(o.fijo&&o.pag<0.5));
       if(o.prog&&vpCascAnim){ const i=[...td.parentNode.children].indexOf(td), f=[...td.closest('tbody').children].indexOf(td.parentNode); td.style.setProperty('--d',(i*.09+f*.03).toFixed(2)+'s'); td.classList.remove('cae'); void td.offsetWidth; td.classList.add('cae'); }
       if(o.auto){ td.classList.add('auto'); td.title=(td.title?td.title+' · ':'')+'Último pago: la app pone lo que falta'; } }
     const it=td.dataset.col==='lbl'&&V.item[r];
@@ -2939,10 +2951,22 @@ $('vpTabla').addEventListener('click',e=>{
   const td=e.target.closest('tr[data-conc] td[data-k],tr[data-conc] td[data-d]'); if(!td) return;
   e.stopPropagation(); e.preventDefault();
   const conc=td.parentNode.dataset.conc, k=conc+'|'+td.dataset.col, filas=(vpCov.filas[k]||[]);
-  if(!vpSel){ if(!filas.length) return toast('Esa celda está vacía'); vpSel={conc,filas,td}; td.classList.add('sel'); $('vpMover').textContent='✥ Ahora toca el mes de destino'; return; }
+  const cel=vpCov.celda[k]||{}, progSolo=!filas.length&&cel.prog>0.5&&cel.pag<0.5;
+  if(!vpSel){ if(!filas.length&&!progSolo) return toast('Esa celda está vacía');
+    vpSel={conc,filas,td,prog:progSolo?Math.round(cel.prog):0}; td.classList.add('sel'); $('vpMover').textContent='✥ Ahora toca el mes de destino'; return; }
   if(vpSel.td===td){ td.classList.remove('sel'); vpSel=null; $('vpMover').textContent='✥ Toca la celda a mover…'; return; }
   if(vpSel.conc!==conc) return toast('Solo puedes moverla dentro de la misma fila');
-  const f=vpSel.filas; $('vpMover').classList.remove('on'); $('vpMover').textContent='✥ Mover'; vpMover(f,td.dataset.k||td.dataset.d);
+  const f=vpSel.filas, pr=vpSel.prog; $('vpMover').classList.remove('on'); $('vpMover').textContent='✥ Mover';
+  if(pr){   // celda programada por la cascada: queda fija (📌) en el mes que elegiste
+    if(!td.dataset.k) return toast('Los montos programados se mueven entre meses');
+    let m=prompt('¿Cuánto mover a '+vpFecha(td.dataset.k)+'? (máx. '+CLP(pr)+')',String(pr)); if(m==null){ vpSel=null; vpAplicarColores(); return; }
+    m=Math.round(Number(String(m).replace(/[^0-9]/g,''))||0); if(m<=0){ vpSel=null; vpAplicarColores(); return; }
+    toast('Moviendo…');
+    google.script.run.withSuccessHandler(r=>{ D.viaje=r; vpSel=null; toast('📌 '+CLP(m)+' fijados en '+vpFecha(td.dataset.k)); render(); })
+      .withFailureHandler(er=>{ vpSel=null; alert(er.message); })
+      .guardarViaje('plan',{fecha:td.dataset.k,concepto:conc.replace(/\s*\(.*\)\s*$/,''),tipo:'Pago',clp:m,nota:'📌 movido por ti',pagado:false});
+    return; }
+  vpMover(f,td.dataset.k||td.dataset.d);
 },true);
 /* ================= GASTOS REALES DEL VIAJE (funciona sin internet) =================
    Cada gasto se guarda primero en el iPhone (cola) y se sube a la hoja "Viaje gastos" cuando hay conexión. */
