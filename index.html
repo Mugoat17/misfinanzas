@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.06-1345";
+window.MF_VERSION = "2026.11.08-1450";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -3156,13 +3156,25 @@ function rViajes(){
 }
 
 /* ================= COMPRAS POR COMPLETAR (Mercado Libre, etc.) ================= */
+/* Apple Pay: si la compra llegó por correo (Banco de Chile o Global66 mandan aviso), ya está registrada; si no llegó correo, es Santander. */
+const minDe=f=>{ const t=Date.parse(String(f||'').slice(0,16).replace(' ','T')); return isNaN(t)?null:t/6e4; };
+function correoDePendiente(p){
+  const t=minDe(p.fecha); if(t==null) return null;
+  return D.movimientos.find(m=>/chile|bch|fan|global/i.test(m.tarjeta||'')&&(!p.monto||Math.abs(m.valor-p.monto)<1)&&(()=>{ const u=minDe(m.fecha); return u!=null&&Math.abs(u-t)<=(p.monto?24*60:20); })())||null;
+}
 function rPendientes(){
-  const L=D.pendientes||[], el=$('pend'); el.hidden=!L.length; if(!L.length) return;
+  const todos=D.pendientes||[], el=$('pend');
+  const apNombre=p=>/apple pay|google pay|wallet/i.test(p.tienda||'');
+  const yaCorreo=todos.filter(p=>apNombre(p)&&correoDePendiente(p)), L=todos.filter(p=>!yaCorreo.includes(p));
+  el.hidden=!L.length&&!yaCorreo.length; if(el.hidden) return;
+  const ahoraMin=Date.now()/6e4;
   const tarjetas=[...new Set(['Santander Crédito','Santander Débito','Banco de Chile Crédito','Banco de Chile Cuenta FAN','Global66'].concat(D.movimientos.map(m=>m.tarjeta)))].filter(t=>t&&t!=='Sin tarjeta');
   const cats=listaCategorias();
-  el.innerHTML=`<h3>🛍️ Compras por completar (${L.length})</h3><div class="sub">Confirma los datos (en Mercado Libre falta el monto; en Apple Pay revisa cuotas y categoría) y pasan a tus gastos.</div>`+
+  el.innerHTML=`<h3>🛍️ Compras por completar (${L.length})</h3><div class="sub">Confirma los datos (en Mercado Libre falta el monto; en Apple Pay revisa cuotas y categoría) y pasan a tus gastos.${yaCorreo.length?` · ✉️ ${yaCorreo.length} compra${yaCorreo.length>1?'s':''} con Apple Pay ya llegó por correo (Banco de Chile/Global66) y quedó registrada sola.`:''}</div>`+
     L.map(p=>{ const ap=/apple pay|google pay|wallet/i.test(p.tienda), tSel=p.tarjeta&&tarjetas.includes(p.tarjeta)?p.tarjeta:'Santander Crédito';
-      return `<div class="pd"><div><div class="n">${ap?'':''}${esc(p.compra)}</div><div class="d">${ap?esc(p.tienda):esc(p.tienda)} · ${fechaCorta(p.fecha)}${p.link?` · <a href="${esc(p.link)}" target="_blank" rel="noopener">ver la compra ↗</a>`:''}${ap&&p.tarjetaOriginal&&p.tarjetaOriginal!==p.tarjeta?' · '+esc(p.tarjetaOriginal.slice(0,40)):''}</div></div><div></div>
+      const tm=minDe(p.fecha), espera=ap&&tm!=null&&ahoraMin-tm<180;
+      const nota=ap?(espera?'<span class="cp">⏳ esperando el correo del banco</span>':'<span class="cp cpr">💳 No llegó correo: es Santander</span>'):'';
+      return `<div class="pd"><div><div class="n">${ap?'':''}${esc(p.compra||'Compra con Apple Pay')} ${nota}</div><div class="d">${ap?esc(p.tienda):esc(p.tienda)} · ${fechaCorta(p.fecha)}${p.link?` · <a href="${esc(p.link)}" target="_blank" rel="noopener">ver la compra ↗</a>`:''}${ap&&p.tarjetaOriginal&&p.tarjetaOriginal!==p.tarjeta?' · '+esc(p.tarjetaOriginal.slice(0,40)):''}</div></div><div></div>
       <form data-f="${p.fila}">
         ${ap?`<input name="nombre" value="${esc(p.compra)}" placeholder="Nombre" style="width:170px" title="Puedes cambiar el nombre">`:''}
         <input name="monto" inputmode="numeric" placeholder="$ total" value="${p.monto?CLP(p.monto):''}" required>
