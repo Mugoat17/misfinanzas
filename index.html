@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Mis Finanzas</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.14-1800";
+window.MF_VERSION = "2026.11.14-1810";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -880,6 +880,10 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 
   @keyframes girar{to{transform:rotate(360deg)}}
   #recargar.girando{animation:girar .9s linear infinite;opacity:.7}
+  /* iPhone: Safari hace zoom al tocar un campo con letra menor a 16px y la página queda agrandada */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{overflow-x:clip}
+  @media (hover:none) and (pointer:coarse){ input,select,textarea{font-size:16px!important} }
 </style>
 </head>
 <body>
