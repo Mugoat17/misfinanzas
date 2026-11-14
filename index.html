@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.08-1500";
+window.MF_VERSION = "2026.11.14-1430";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -284,6 +284,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   .vp-t td.pint{color:#13231b!important} .vp-t td.pint .nt,.vp-t td.pint .cp{color:#334155}
   .vp-t td.cub{background:color-mix(in srgb,var(--sav) 30%,var(--panel))!important} .vp-t td.cub.fc,.vp-t td.cubp.fc{font-weight:600}
   .vp-t .cp.cpv{background:color-mix(in srgb,var(--sav) 22%,transparent);color:var(--sav)}
+  .vp-t td.cmp{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--disp) 38%,var(--panel)) 0 6px,color-mix(in srgb,var(--disp) 20%,var(--panel)) 6px 12px)!important;font-weight:600}
+  .vp-t .cp.cpc{background:color-mix(in srgb,var(--disp) 22%,transparent);color:var(--disp)}
   .vp-t td.pag{background:color-mix(in srgb,var(--sav) 48%,var(--panel))!important;color:#0b2a17;animation:pagado 2.2s ease-in-out infinite}
   @keyframes pagado{0%,100%{box-shadow:inset 0 0 0 0 rgba(34,197,94,0),0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:inset 0 0 0 40px rgba(74,222,128,.45),0 0 10px 1px rgba(34,197,94,.55)}}
   .vp-t td.auto{font-style:italic} .vp-t td.auto::after{content:' falta';font-size:9px;font-style:normal;color:var(--exp);font-weight:700;margin-left:3px}
@@ -299,7 +301,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
   .vp-ley{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px} .vp-ley span{display:flex;align-items:center;gap:5px}
   .vp-ley i{width:14px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--line);font-size:9px;line-height:10px;text-align:center;font-style:normal}
   .vp-ley .l-prog{background:repeating-linear-gradient(135deg,var(--panel) 0 3px,color-mix(in srgb,var(--disp) 30%,var(--panel)) 3px 6px)}
-  .vp-ley .l-pag{background:color-mix(in srgb,var(--sav) 48%,var(--panel))} .vp-ley .l-cub{background:color-mix(in srgb,var(--sav) 30%,var(--panel))}
+  .vp-ley .l-pag{background:color-mix(in srgb,var(--sav) 48%,var(--panel))} .vp-ley .l-cmp{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--disp) 45%,var(--panel)) 0 5px,color-mix(in srgb,var(--disp) 22%,var(--panel)) 5px 10px)} .vp-ley .l-cub{background:color-mix(in srgb,var(--sav) 30%,var(--panel))}
   .vp-ley .l-par{background:linear-gradient(90deg,color-mix(in srgb,var(--sav) 32%,var(--panel)) 50%,var(--panel) 50%)} .vp-ley .l-no{background:var(--panel)}
   .vp-pal{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;margin-bottom:8px;border:1px dashed var(--line);border-radius:10px;font-size:12px;color:var(--muted)}
   .vp-pal #vpCols{display:flex;gap:6px} .vp-pal .sw{width:26px;height:26px;border-radius:7px;border:2px solid var(--line);cursor:pointer;display:grid;place-items:center;font-size:13px;background:var(--panel)}
@@ -1211,7 +1213,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
           <div class="panel"><div class="vp-tit"><h2 class="izq" style="margin:0">Presupuesto del viaje</h2>
             <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn chico" id="vpGastoBtn">＋ Gasto del viaje</button><button class="btn sec chico" id="vpMover">✥ Mover</button><button class="btn sec chico" id="vpPintar">🎨 Pintar</button><button class="btn sec chico" id="vpAddPlan">＋ Ahorro / pago</button><button class="btn chico" id="vpAddItem">＋ Ítem</button></div></div>
             <div class="fact-sub" style="margin:-4px 0 8px">Cada mes, lo que queda del sueldo (después de deudas, fijos y disponible) llena en cascada lo que falta, de arriba hacia abajo. Toca una celda cuando pagues: el monto queda congelado.</div>
-            <div class="vp-ley"><span><i class="l-pag"></i>Pagado (monto fijo)</span><span><i class="l-cub"></i>Asegurado con ahorro</span><span><i class="l-par"></i>En parte</span><span><i class="l-prog"></i>Programado (cascada del restante)</span><span><i class="l-no"></i>Falta</span></div>
+            <div class="vp-ley"><span><i class="l-pag"></i>Pagado</span><span><i class="l-cmp"></i>Comprado (falta pagar la tarjeta o pagar allá)</span><span><i class="l-cub"></i>Asegurado con ahorro</span><span><i class="l-par"></i>En parte</span><span><i class="l-prog"></i>Programado (cascada del restante)</span><span><i class="l-no"></i>Falta</span></div>
             <div class="vp-pal" id="vpPal" hidden><span>Elige un color y toca las celdas:</span><span id="vpCols"></span>
               <label class="vp-fila"><input type="checkbox" id="vpFilaComp"> Fila completa</label><button class="btn sec chico" id="vpPinListo">Listo</button></div>
             <div class="vp-tw"><table class="vp-t" id="vpTabla"></table></div></div>
@@ -2713,6 +2715,7 @@ function rPlanViaje(){
     info[x.concepto]={valor:pagado+falta,pagado,falta,aseg:0};
   });
   const valor=x=>vpEsCub(x)?vpClp(x):(info[x.concepto]?info[x.concepto].valor:vpClp(x));
+  Object.keys(info).forEach(cn=>{ info[cn].comprado=suma(pm.filter(p=>p.tipo==='Pago'&&p.pagado&&vpComprado(p)&&dueno(p)===cn),vpPlanClp); });
   const vV=p=>val.get(p)||0;
   /* ---------- lo ahorrado ("Cubierto" con Cubre = ítem) se reparte en lo pendiente, del más antiguo al más nuevo ---------- */
   const asegFila=new Map();
@@ -2764,7 +2767,7 @@ function rPlanViaje(){
   // celdas: total, pagado, asegurado, automático
   vpCov={celda:{},item:info,filas:{}};
   const reg=(conc,col,p)=>{ const k=conc+'|'+col, o=vpCov.celda[k]=vpCov.celda[k]||{tot:0,pag:0,aseg:0,auto:false};
-    o.tot+=vV(p); if(p.pagado) o.pag+=vV(p); o.aseg+=asegFila.get(p)||0; if(auto.has(p)) o.auto=true;
+    o.tot+=vV(p); if(p.pagado){ o.pag+=vV(p); if(vpComprado(p)) o.cmp=(o.cmp||0)+vV(p); } o.aseg+=asegFila.get(p)||0; if(auto.has(p)) o.auto=true;
     (vpCov.filas[k]=vpCov.filas[k]||[]).push(p.fila); };
   const oculta=p=>cascada&&p.tipo==='Pago'&&!p.pagado&&info[dueno(p)];   // con la cascada, los pagos pendientes los programa la app
   plan.forEach(p=>{ const d=dueno(p); if(!d||oculta(p)) return; if(p.fecha.length>7&&p.tipo==='En el viaje'){ reg(d,p.fecha+'u',p); reg(d,p.fecha+'c',p); } else reg(d,p.fecha.slice(0,7),p); });
@@ -2778,14 +2781,14 @@ function rPlanViaje(){
 
   // totales
   const gasto=items.filter(x=>!vpEsCub(x)&&x.suma), cub=items.filter(x=>vpEsCub(x)&&x.suma);
-  const tot=suma(gasto,valor), pagT=suma(gasto,x=>info[x.concepto]?info[x.concepto].pagado:0), ahoCub=suma(cub,vpClp), cubT=pagT+ahoCub, fal=tot-cubT;
+  const tot=suma(gasto,valor), cmpT=suma(gasto,x=>info[x.concepto]?info[x.concepto].comprado||0:0), pagT=suma(gasto,x=>info[x.concepto]?info[x.concepto].pagado:0)-cmpT, ahoCub=suma(cub,vpClp), cubT=pagT+cmpT+ahoCub, fal=tot-cubT;
   { const pc=tot?Math.min(1,cubT/tot):0, pos=Math.round(pc*1000)/10;
     $('vpLleno').style.width='0%'; $('vpBarco').style.left='0%';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{ $('vpLleno').style.width=pos+'%'; $('vpBarco').style.left=`calc((100% - 26px) * ${pc})`; }));
     $('vpBarcoP').innerHTML=`<b>${Math.round(pc*100)}%</b> del viaje cubierto`;
     $('vpBarcoD').innerHTML=dias!=null&&dias>0?`zarpas en <b>${dias} días</b> ⚓`:dias!=null&&dias>-10?'<b>¡a bordo!</b>':''; }
   contar($('vpTot'),tot); $('vpTotS').textContent=USD(tot/dol)+' a '+DOLAR(dol)+' · lo pagado queda fijo';
-  contar($('vpCub'),cubT); $('vpCubS').textContent=`${tot?Math.round(cubT/tot*100):0}% · pagado ${CLP(pagT)} + ahorrado ${CLP(ahoCub)}`;
+  contar($('vpCub'),cubT); $('vpCubS').textContent=`${tot?Math.round(cubT/tot*100):0}% · pagado ${CLP(pagT)} + comprado ${CLP(cmpT)} + ahorrado ${CLP(ahoCub)}`;
   contar($('vpFal'),Math.max(0,fal)); $('vpFalS').textContent=fal>0?USD(fal/dol)+' por juntar':'✓ cubierto';
   const aho=plan.filter(p=>p.tipo==='Ahorro'&&p.fecha.slice(0,7)>=HOY), ahoT=suma(aho,vpPlanClp), dif=ahoT-fal;
   if(capMeses.length){ const d2=capT-fal; contar($('vpAho'),capT);
@@ -2826,6 +2829,7 @@ function rPlanViaje(){
   const diaDe=conc=>f=>pv.filter(p=>p.fecha===f&&dueno(p)===conc);
   const chip=x=>{ const o=info[x.concepto]; if(!o||vpEsCub(x)) return '';
     if(cascada&&o.sinCubrir>0.5) return `<span class="cp cpr">⚠ ${CLP(o.sinCubrir)} no alcanzan antes del viaje</span>`;
+    if(o.falta<0.5&&o.pagado>0&&o.comprado>0.5) return o.comprado>=o.pagado-0.5?'<span class="cp cpc">💳 comprado · falta pagar</span>':`<span class="cp cpc">💳 comprado · falta pagar ${CLP(o.comprado)}</span>`;
     if(o.falta<0.5&&o.pagado>0) return '<span class="cp cpv">✓ pagado</span>';
     if(o.queda<0.5&&o.efe>=o.falta-0.5) return '<span class="cp cpv">✓ cubierto con efectivo</span>';
     if(o.queda<0.5&&o.aseg>0) return '<span class="cp cpv">✓ asegurado</span>';
@@ -2866,6 +2870,7 @@ function rPlanViaje(){
   secG.forEach(sn=>{ h+=fila('Total '+esc(sn),totSec(sn)/dol,totSec(sn),null,null,{cls:'res',falta:faltaDe(items.filter(x=>x.seccion===sn))}); });
   h+=fila('<b>Total</b>',tot/dol,tot,null,null,{cls:'tot'});
   h+=fila('Ya pagado',pagT/dol,pagT,null,null,{cls:'res'});
+  h+=fila('Comprado (falta pagar la tarjeta o pagar allá)',cmpT/dol,cmpT,null,null,{cls:'res'});
   h+=fila('Ahorrado',ahoCub/dol,ahoCub,null,null,{cls:'res'});
   h+=fila('<b>Faltante</b>',fal/dol,fal,null,null,{cls:'tot'+(fal>0?' neg':'')});
   $('vpTabla').innerHTML=h+'</tbody>';
@@ -2895,6 +2900,12 @@ const VP_PINT=['#fef08a','#bbf7d0','#bfdbfe','#fecaca','#fed7aa','#e9d5ff','#fbc
 var vpPinCol=VP_PINT[0], vpGuardaCol=null, vpCov=null, vpArr=null, vpSel=null, vpCascAnim=false, vpFijos={};
 /* 📌 Pago pendiente que fijaste tú en un mes (nota con 📌): la cascada lo respeta. */
 const vpFijo=p=>/📌/.test(p.nota||'');
+/* 💳 Comprado ≠ pagado: lo compraste con tarjeta (o lo reservaste para pagar allá, 🛒) pero la cuenta todavía no se paga.
+   Una compra con tarjeta queda pagada cuando pasa el mes de su cuenta (la pagas a fin de ese mes) o si la nota dice ✅ (cuenta adelantada). */
+const vpComprado=p=>{ if(!p||!p.pagado) return false; const n=p.nota||'';
+  if(/✅/.test(n)) return false; if(/🛒/.test(n)) return true;
+  if(!/💳|pagad[oa] con (la )?tarjeta/i.test(n)) return false;
+  return String(p.fecha||'').slice(0,7)>=HOY; };
 const vpCols=()=>{ D.viaje.cfg.colores=D.viaje.cfg.colores||{}; return D.viaje.cfg.colores; };
 /* Verde = pagado (fuerte) o asegurado con ahorro (suave); parcial = barra verde hasta el %; el último pendiente dice "falta" */
 function vpAplicarColores(){
@@ -2902,10 +2913,11 @@ function vpAplicarColores(){
   const C=(D.viaje&&D.viaje.cfg.colores)||{}, V=vpCov||{celda:{},item:{}}, verde=css('--sav');
   $('vpTabla').querySelectorAll('tr[data-r] td[data-col]').forEach(td=>{
     const r=td.parentNode.dataset.r, o=V.celda[r+'|'+td.dataset.col];
-    td.classList.remove('pag','cub','auto','prog','fijo'); td.style.backgroundImage=''; td.title='';
+    td.classList.remove('pag','cmp','cub','auto','prog','fijo'); td.style.backgroundImage=''; td.title='';
     if(o&&o.tot>0){ const cub=o.pag+o.aseg, pc=Math.min(100,Math.round(cub/o.tot*100));
       const itE=V.item[r], efeOk=itE&&itE.efe>0&&itE.efe>=itE.falta-0.5&&cub>=o.tot-0.5;   // cubierto entero con efectivo: se ve como pagado
-      if(o.pag>=o.tot-0.5||efeOk){ td.classList.add('pag'); td.title=efeOk&&o.pag<o.tot-0.5?'✓ Cubierto con efectivo (dólares)':'✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
+      if(o.pag>=o.tot-0.5&&(o.cmp||0)>0.5&&!efeOk){ td.classList.add('cmp'); td.title='💳 Comprado: falta pagar la cuenta de la tarjeta (o pagarlo allá)'; }
+      else if(o.pag>=o.tot-0.5||efeOk){ td.classList.add('pag'); td.title=efeOk&&o.pag<o.tot-0.5?'✓ Cubierto con efectivo (dólares)':'✓ Pagado (monto congelado)'; const kk=r+'|'+td.dataset.col; ahora.add(kk);
         if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } }
       else if(pc>=100){ td.classList.add('cub'); td.title='✓ Asegurado con ahorro'; }
       else if(pc>0){ td.style.backgroundImage=`linear-gradient(90deg, color-mix(in srgb, ${verde} 32%, transparent) ${pc}%, transparent ${pc}%)`; td.title=`Cubierto ${CLP(cub)} de ${CLP(o.tot)} (${pc}%) · falta ${CLP(o.tot-cub)}`; }
@@ -2914,10 +2926,11 @@ function vpAplicarColores(){
       if(o.prog&&vpCascAnim){ const i=[...td.parentNode.children].indexOf(td), f=[...td.closest('tbody').children].indexOf(td.parentNode); td.style.setProperty('--d',(i*.09+f*.03).toFixed(2)+'s'); td.classList.remove('cae'); void td.offsetWidth; td.classList.add('cae'); }
       if(o.auto){ td.classList.add('auto'); td.title=(td.title?td.title+' · ':'')+'Último pago: la app pone lo que falta'; } }
     const it=td.dataset.col==='lbl'&&V.item[r];
-    if(it&&it.valor>0){ if(it.falta<0.5) { td.classList.add('pag'); td.title='✓ Todo pagado'; }
+    if(it&&it.valor>0){ if(it.falta<0.5&&it.comprado>0.5){ td.classList.add('cmp'); td.title=`💳 Comprado · falta pagar ${CLP(it.comprado)}`; }
+      else if(it.falta<0.5) { td.classList.add('pag'); td.title='✓ Todo pagado'; }
       else if(it.queda<0.5&&it.efe>=it.falta-0.5){ td.classList.add('pag'); td.title='✓ Cubierto con efectivo (dólares)'; const kk=r+'|lbl'; ahora.add(kk);
         if(antes&&!antes.has(kk)){ td.classList.remove('flash'); void td.offsetWidth; td.classList.add('flash'); } } else if(it.queda<0.5){ td.classList.add('cub'); td.title='✓ Todo asegurado'; }
-      else td.title=`Pagado ${CLP(it.pagado)} · ahorrado ${CLP(it.aseg)} · falta ${CLP(it.queda)}`; }
+      else td.title=`Pagado ${CLP(it.pagado-(it.comprado||0))}${it.comprado>0.5?' · comprado '+CLP(it.comprado):''} · ahorrado ${CLP(it.aseg)} · falta ${CLP(it.queda)}`; }
     const c=C[r+'|'+td.dataset.col]||C[r+'|*'];
     if(c){ td.style.setProperty('background-color',c,'important'); td.style.backgroundImage='none'; } else td.style.removeProperty('background-color'); td.classList.toggle('pint',!!c);
   });
