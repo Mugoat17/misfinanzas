@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.14-1810";
+window.MF_VERSION = "2026.11.15-0145";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1709,23 +1709,27 @@ function aporteNecesario(v,obj,r,n){ if(n<=0) return Math.max(0,obj-v); const i=
    Las tareas marcadas se guardan junto al diseño (DIS._depa) y en el teléfono. */
 const DEPA={
   carpeta:'Departamento', pie:8000000, total:18000000,
-  plan:[['2027-01',1270177],['2027-02',3028089],['2027-03',4927991],['2027-04',6827893],['2027-05',8727795],
-        ['2027-06',10627697],['2027-07',12527599],['2027-08',14427501],['2027-09',16327403],['2027-10',18227305]],
+  /* plan del 15-11-2026: nov–ene todo va al viaje; desde el sueldo de fin de febrero ~$1,88M al mes (sin contar el colchón del viaje) */
+  plan:[['2026-11',0],['2026-12',0],['2027-01',0],['2027-02',1736000],['2027-03',3614000],['2027-04',5492000],['2027-05',7370000],
+        ['2027-06',9248000],['2027-07',11126000],['2027-08',13004000],['2027-09',14882000],['2027-10',16760000],['2027-11',18638000]],
   rutas:{
     A:{sub:'Calificas dentro del 90% del Registro Social de Hogares: postulas al DS1 Tramo 4.000 (hasta 400 UF de subsidio).',hitos:[
       {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
       {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock (con recepción final) en Ñuñoa y Providencia, sin firmar nada.'},
       {iso:'2027-01-25',cuando:'25 ene 2027',ic:'🏦',tit:'La Cuenta Ahorro Vivienda cumple 12 meses',txt:'Abierta el 25-01-2026 en BancoEstado.'},
-      {iso:'2027-05-31',cuando:'May 2027',ic:'🔑',tit:'Pie listo (~$8,7M, unos 200 UF)',txt:'El ahorro mínimo del DS1 está completo.',pie:true},
-      {iso:null,cuando:'2027 · por confirmar',ic:'📮',tit:'Postular al 2º llamado del DS1 Tramo 4.000',txt:'~10.000 cupos. Si el corte del ahorro cae antes de mayo, posterga un viaje para adelantar el ahorro.',critico:true},
-      {iso:'2027-10-31',cuando:'Oct 2027',ic:'🛋️',tit:'~$18M: plata para amoblar',txt:'O para gastos de escritura.',fin:true},
+      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Nov–ene todo va al viaje. Desde el sueldo de fin de febrero, ~$1,88M al mes (+ el colchón del viaje si no lo usaste).'},
+      {iso:'2027-04-30',cuando:'30 abr 2027 (supuesto)',ic:'📮',tit:'Corte del 1er llamado DS1',txt:'Llevarías ~$5,5M: no alcanzas los 200 UF. Postulación ~19–30 may.'},
+      {iso:'2027-06-30',cuando:'Jun 2027',ic:'🔑',tit:'Pie listo (~$9,2M, más de 200 UF)',txt:'El ahorro mínimo del DS1 está completo.',pie:true},
+      {iso:'2027-10-29',cuando:'29 oct 2027 (supuesto)',ic:'📮',tit:'Corte del 2º llamado DS1 Tramo 4.000',txt:'Llegas con ~$16,8M en la Cuenta Ahorro Vivienda. Postulación ~18–28 nov.',critico:true},
+      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,6M: plata para amoblar',txt:'O para gastos de escritura.',fin:true},
       {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Último día para que la promesa cuente para la exención de IVA.',critico:true},
       {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'FOGAES y el subsidio a la tasa rigen hasta esa fecha.',critico:true}]},
     B:{sub:'Quedas sobre el 90% del Registro Social de Hogares: compras sin DS1, con FOGAES + subsidio a la tasa.',hitos:[
       {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
       {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock con IVA exento, sin firmar nada.'},
-      {iso:'2027-05-31',cuando:'Desde may 2027',ic:'🔑',tit:'Pie listo: comprar con FOGAES + subsidio a la tasa',txt:'Para subir el pie, suma parte de la plata de amoblar.',pie:true},
-      {iso:'2027-10-31',cuando:'Oct 2027',ic:'🛋️',tit:'~$18M ahorrados',txt:'Lo que no vaya al pie queda para amoblar.',fin:true},
+      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Desde el sueldo de fin de febrero, ~$1,88M al mes.'},
+      {iso:'2027-06-30',cuando:'Desde jun 2027',ic:'🔑',tit:'Pie listo: comprar con FOGAES + subsidio a la tasa',txt:'Para subir el pie, suma parte de la plata de amoblar.',pie:true},
+      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,6M ahorrados',txt:'Lo que no vaya al pie queda para amoblar.',fin:true},
       {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Elige un depto en stock con IVA exento.',critico:true},
       {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'Vigencia de FOGAES y subsidio a la tasa.',critico:true}]}
   },
@@ -1734,7 +1738,7 @@ const DEPA={
     {g:'Paso 0 · noviembre 2026',id:'cav',t:'Depositar el ahorro mensual en la Cuenta Ahorro Vivienda (BancoEstado)',d:'No en una cuenta normal: esas lucas sirven a la vez de pie y de ahorro para el DS1.'},
     {g:'Paso 0 · noviembre 2026',id:'preeval',t:'Pedir la pre-evaluación del crédito hipotecario',d:'Para saber cuánto te prestan de verdad (con ~$2M podría acercarse a 3.000 UF).'},
     {g:'Desde diciembre 2026',id:'cotizar',t:'Cotizar deptos en stock en Ñuñoa y Providencia',d:'Con recepción municipal anterior al 17-10-2026 y en primera venta (IVA exento). Sin firmar nada.'},
-    {g:'Por confirmar',id:'cLlamado',t:'Fecha y condiciones del 2º llamado DS1 2027',d:'Corte del ahorro y si vuelven a exigir 12 meses de antigüedad a la cuenta.',r:'A'},
+    {g:'Por confirmar',id:'cLlamado',t:'Fecha y condiciones del 2º llamado DS1 2027',d:'Supuesto como en 2025: corte el último día hábil de octubre y postulación a fines de noviembre. Confirmar y revisar si piden 12 meses de antigüedad (tu cuenta los cumple el 25-01-2027).',r:'A'},
     {g:'Por confirmar',id:'cIva',t:'¿Se puede combinar la exención de IVA con el DS1?',d:'Consultar al vendedor y al Serviu.',r:'A'},
     {g:'Por confirmar',id:'cPromesa',t:'¿Se puede firmar promesa antes del resultado del DS1?',d:'Consultar al Serviu.',r:'A'},
     {g:'2027 – 2028',id:'postular',t:'Postular al 2º llamado del DS1 Tramo 4.000',d:'En minvu.gob.cl con ClaveÚnica o en el Serviu.',r:'A'},
@@ -1790,7 +1794,7 @@ function rDepa(){
   const rut=DEPA.rutas[st.ruta], prox=rut.hitos.find(x=>x.iso&&x.iso>=hoy);
   const chips=[];
   chips.push(saldo>=DEPA.pie?'🔑 <b>¡Pie listo!</b>':'Faltan <b>'+CLP(DEPA.pie-saldo)+'</b> para el pie');
-  if(enPlan==null) chips.push('📅 El plan de ahorro parte en <b>enero 2027</b>');
+  if(enPlan==null||(enPlan===0&&HOY<'2027-02')) chips.push('📅 El ahorro del Depa vuelve con el sueldo de <b>fin de febrero 2027</b> (antes va todo al viaje)');
   else { const dif=saldo-enPlan; chips.push(dif>=0?'🚀 Vas <b>'+CLP(dif)+'</b> adelante del plan':'🐢 Vas <b>'+CLP(-dif)+'</b> atrás del plan'); }
   if(mesPie) chips.push('🎯 Pie según plan: <b>'+nombreMes(mesPie)+'</b>');
   if(prox) chips.push('⏳ '+esc(prox.tit.split(':')[0])+' <b>'+txtDias(diasA(prox.iso))+'</b>');
@@ -1861,7 +1865,7 @@ function rDepa(){
     options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10}},
       tooltip:{filter:i=>i.raw!=null,callbacks:{label:i=>' '+i.dataset.label+': '+CLP(i.raw)}}},
       scales:{y:{beginAtZero:true,ticks:{callback:v=>corto$(v)},grid:{color:css('--line')}},x:{grid:{display:false}}}}});
-  $('dpPlanSub').textContent='Escenario elegido: viajes de US$1.000 c/u · pie '+CLP(DEPA.pie)+' y luego '+CLP(DEPA.total-DEPA.pie)+' para amoblar.';
+  $('dpPlanSub').textContent='Plan con el viaje: nov–ene todo al viaje, desde febrero ~$1,88M al mes · pie '+CLP(DEPA.pie)+' y luego '+CLP(DEPA.total-DEPA.pie)+' para amoblar.';
 
   /* ---- por qué el DS1 ---- */
   $('dpDs1').innerHTML=`<div class="fact-sub" style="margin:-4px 0 10px">Pie sobre un depto de 4.000 UF</div><div class="dp-comp">
