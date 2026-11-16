@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.16-1230";
+window.MF_VERSION = "2026.11.16-1915";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1710,26 +1710,26 @@ function aporteNecesario(v,obj,r,n){ if(n<=0) return Math.max(0,obj-v); const i=
 const DEPA={
   carpeta:'Departamento', pie:8000000, total:18000000,
   /* plan del 15-11-2026: nov–ene todo va al viaje; desde el sueldo de fin de febrero ~$1,88M al mes (sin contar el colchón del viaje) */
-  plan:[['2026-11',0],['2026-12',0],['2027-01',0],['2027-02',1736000],['2027-03',3614000],['2027-04',5492000],['2027-05',7370000],
-        ['2027-06',9248000],['2027-07',11126000],['2027-08',13004000],['2027-09',14882000],['2027-10',16760000],['2027-11',18638000]],
+  plan:[['2026-11',0],['2026-12',0],['2027-01',0],['2027-02',1736000],['2027-03',3584000],['2027-04',5372000],['2027-05',7160000],
+        ['2027-06',9038000],['2027-07',10916000],['2027-08',12794000],['2027-09',14672000],['2027-10',16550000],['2027-11',18428000]],   // mar–may: viajes a Santiago
   rutas:{
     A:{sub:'Calificas dentro del 90% del Registro Social de Hogares: postulas al DS1 Tramo 4.000 (hasta 400 UF de subsidio).',hitos:[
       {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
       {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock (con recepción final) en Ñuñoa y Providencia, sin firmar nada.'},
       {iso:'2027-01-25',cuando:'25 ene 2027',ic:'🏦',tit:'La Cuenta Ahorro Vivienda cumple 12 meses',txt:'Abierta el 25-01-2026 en BancoEstado.'},
-      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Nov–ene todo va al viaje. Desde el sueldo de fin de febrero, ~$1,88M al mes (+ el colchón del viaje si no lo usaste).'},
-      {iso:'2027-04-30',cuando:'30 abr 2027 (supuesto)',ic:'📮',tit:'Corte del 1er llamado DS1',txt:'Llevarías ~$5,5M: no alcanzas los 200 UF. Postulación ~19–30 may.'},
-      {iso:'2027-06-30',cuando:'Jun 2027',ic:'🔑',tit:'Pie listo (~$9,2M, más de 200 UF)',txt:'El ahorro mínimo del DS1 está completo.',pie:true},
-      {iso:'2027-10-29',cuando:'29 oct 2027 (supuesto)',ic:'📮',tit:'Corte del 2º llamado DS1 Tramo 4.000',txt:'Llegas con ~$16,8M en la Cuenta Ahorro Vivienda. Postulación ~18–28 nov.',critico:true},
-      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,6M: plata para amoblar',txt:'O para gastos de escritura.',fin:true},
+      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Nov–ene todo va al viaje. Desde el sueldo de fin de febrero, ~$1,8–1,9M al mes (marzo a mayo con un viaje a Santiago cada mes).'},
+      {iso:'2027-04-30',cuando:'30 abr 2027 (supuesto)',ic:'📮',tit:'Corte del 1er llamado DS1',txt:'Llevarías ~$5,4M: no alcanzas los 200 UF. Postulación ~19–30 may.'},
+      {iso:'2027-06-30',cuando:'Jun 2027',ic:'🔑',tit:'Pie listo (~$9,0M, más de 200 UF)',txt:'El ahorro mínimo del DS1 está completo.',pie:true},
+      {iso:'2027-10-29',cuando:'29 oct 2027 (supuesto)',ic:'📮',tit:'Corte del 2º llamado DS1 Tramo 4.000',txt:'Llegas con ~$16,6M en la Cuenta Ahorro Vivienda. Postulación ~18–28 nov.',critico:true},
+      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,4M: plata para amoblar',txt:'O para gastos de escritura.',fin:true},
       {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Último día para que la promesa cuente para la exención de IVA.',critico:true},
       {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'FOGAES y el subsidio a la tasa rigen hasta esa fecha.',critico:true}]},
     B:{sub:'Quedas sobre el 90% del Registro Social de Hogares: compras sin DS1, con FOGAES + subsidio a la tasa.',hitos:[
       {iso:'2026-11-30',cuando:'Nov 2026',ic:'📝',tit:'Paso 0: dejar todo listo',txt:'Registro Social de Hogares, ahorro en la Cuenta Ahorro Vivienda y pre-evaluación del crédito.'},
       {iso:'2026-12-01',cuando:'Dic 2026',ic:'🧾',tit:'Empieza la exención de IVA',txt:'Cotizar deptos en stock con IVA exento, sin firmar nada.'},
-      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Desde el sueldo de fin de febrero, ~$1,88M al mes.'},
+      {iso:'2027-02-27',cuando:'Feb 2027',ic:'🛳️',tit:'Vuelves del viaje: el ahorro vuelve al Depa',txt:'Desde el sueldo de fin de febrero, ~$1,8–1,9M al mes (marzo a mayo con viajes a Santiago).'},
       {iso:'2027-06-30',cuando:'Desde jun 2027',ic:'🔑',tit:'Pie listo: comprar con FOGAES + subsidio a la tasa',txt:'Para subir el pie, suma parte de la plata de amoblar.',pie:true},
-      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,6M ahorrados',txt:'Lo que no vaya al pie queda para amoblar.',fin:true},
+      {iso:'2027-11-30',cuando:'Nov 2027',ic:'🛋️',tit:'~$18,4M ahorrados',txt:'Lo que no vaya al pie queda para amoblar.',fin:true},
       {iso:'2027-11-30',cuando:'Hasta 30 nov 2027',ic:'✍️',tit:'Firmar la promesa',txt:'Elige un depto en stock con IVA exento.',critico:true},
       {iso:'2028-05-31',cuando:'Hasta 31 may 2028',ic:'🏠',tit:'Escriturar con FOGAES',txt:'Vigencia de FOGAES y subsidio a la tasa.',critico:true}]}
   },
@@ -2154,12 +2154,15 @@ function retirosTarjeta(k){
     let km=mesKey(a.fecha); if(adel&&+a.fecha.slice(8,10)>=20) km=sumarMeses(km,1);
     return (/este mes/i.test(a.nota||'')?km:sumarMeses(km,1))===k; }),a=>aCLP(a.carpeta,a.monto,k));   // "este mes" en la nota: la tarjeta se pagó (adelantó) el mismo mes del retiro
 }
+/* Gasto planificado de una sola vez (hoja Fijos, Frecuencia "Única", y en la nota el mes que lo paga: "mes 2027-04") */
+const esUnica=f=>/^[úu]nica/i.test(String(f.frecuencia||'').trim());
+const mesUnica=f=>{ const m=String(f.nota||'').match(/(20\d\d)-(\d\d)/); return m?m[1]+'-'+m[2]:null; };
 function capacidadMes(k,neto){
   const sueldo=sueldoProm||D.config.sueldo||0, tarj=suma(Object.values(tarjetasMes(k)),x=>x.monto||0);
-  const base=suma((D.fijos||[]).filter(f=>f.tipo!=='Crédito'&&(f.frecuencia!=='Anual'||f.mes===+k.slice(5))),f=>f.monto||0);
+  const base=suma((D.fijos||[]).filter(f=>esUnica(f)?mesUnica(f)===k:f.tipo!=='Crédito'&&(f.frecuencia!=='Anual'||f.mes===+k.slice(5))),f=>f.monto||0);
   // suscripciones en tarjeta de crédito: aún no están en las cuotas del mes futuro → se suman (se pagan el mes siguiente al cobro)
   const mesPago=f=>(((f.mes||1)-1+((f.dia||1)>=24?2:1))%12)+1;   // cobro después del cierre (~24) → se paga 2 meses después
-  const subsCred=suma((D.fijos||[]).filter(f=>f.tipo==='Crédito'&&(f.frecuencia!=='Anual'||mesPago(f)===+k.slice(5))),f=>f.monto||0);
+  const subsCred=suma((D.fijos||[]).filter(f=>!esUnica(f)&&f.tipo==='Crédito'&&(f.frecuencia!=='Anual'||mesPago(f)===+k.slice(5))),f=>f.monto||0);
   const r=sueldo-tarj-subsCred-base-limiteMes(k)+retirosTarjeta(k); return neto?r:Math.max(0,r);
 }
 /* Igual, pero si el sueldo del mes ya llegó usa tus datos reales (y descuenta lo que ya moviste a tus carpetas: eso ya cuenta como ahorrado). */
@@ -2671,7 +2674,7 @@ function detectarSubs(){
     out.push({nombre:m.compra,tarjeta:m.tarjeta,cat:catDe(m),monto:ult,prev,sube:ult>prev*1.03?ult-prev:0,meses:ms,dia:+m.fecha.slice(8,10),activa,fijo:false});
   });
   // tu hoja Fijos (si no se detectó ya)
-  (D.fijos||[]).forEach(f=>{ const n=normCat(f.nombre).split(' ')[0];
+  (D.fijos||[]).filter(f=>!esUnica(f)).forEach(f=>{ const n=normCat(f.nombre).split(' ')[0];
     const igual=o=>normCat(o.nombre).includes(n)||(Math.abs(o.monto-f.monto)<2&&o.tarjeta===f.tarjeta);
     if(out.some(igual)) { out.forEach(o=>{ if(igual(o)){ o.fijo=f.nombre; o.frecuencia=f.frecuencia; o.mes=f.mes; } }); return; }
     out.push({nombre:f.nombre,tarjeta:f.tarjeta||f.tipo,cat:'Suscripciones',monto:f.monto,prev:f.monto,sube:0,meses:[],dia:f.dia,activa:true,fijo:f.nombre,soloFijo:true,frecuencia:f.frecuencia,mes:f.mes}); });
@@ -3360,9 +3363,9 @@ function rMovs(){
   $('claveBarras').innerHTML=claveTipos();
   dona('cTarj','lTarj','totTarj',porTarjetaItems(agrupar(movs)));
   dona('cTipo','lTipo','totTipo',[{nombre:'Débito',valor:deb,color:css('--accent'),credito:false},{nombre:'Crédito',valor:cred,color:css('--accent'),credito:true}]);
-  const F=D.fijos, totF=suma(F,f=>f.frecuencia==='Anual'?f.monto/12:f.monto);
+  const F=D.fijos, totF=suma(F.filter(f=>!esUnica(f)),f=>f.frecuencia==='Anual'?f.monto/12:f.monto);
   $('lFijos').innerHTML=F.length?F.map(f=>`<div class="it"><div><div class="n">${swatch(colorTarjeta(f.tarjeta),f.tipo==='Crédito')} ${esc(f.nombre)}</div>
-      <div class="d">${esc(f.tarjeta||f.tipo)} · ${f.frecuencia==='Anual'?`anual · ${f.dia} de ${f.mes?MESES[f.mes-1].toLowerCase():'?'}`:'día '+f.dia}${f.nota?' · '+esc(f.nota):''}</div></div><div class="m">${CLP(f.monto)}${f.frecuencia==='Anual'?'<small style="display:block;font-weight:400;color:var(--muted)">/año</small>':''}</div></div>`).join('')+
+      <div class="d">${esc(f.tarjeta||f.tipo)} · ${esUnica(f)?`una vez · ${mesUnica(f)?nombreMes(mesUnica(f)):'?'}`:f.frecuencia==='Anual'?`anual · ${f.dia} de ${f.mes?MESES[f.mes-1].toLowerCase():'?'}`:'día '+f.dia}${f.nota?' · '+esc(f.nota):''}</div></div><div class="m">${CLP(f.monto)}${esUnica(f)?'<small style="display:block;font-weight:400;color:var(--muted)">una vez</small>':f.frecuencia==='Anual'?'<small style="display:block;font-weight:400;color:var(--muted)">/año</small>':''}</div></div>`).join('')+
     `<div class="tot"><span>Total al mes${(sueldoProm||D.config.sueldo)?` · ${(totF/(sueldoProm||D.config.sueldo)*100).toFixed(1).replace('.',',')}% del sueldo`:''}</span><span>${CLP(totF)}</span></div>`
     :'<div class="vacio">Agrega tus gastos fijos en la hoja <b>Fijos</b>.</div>';
   // por categoría
