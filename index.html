@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.15-0145";
+window.MF_VERSION = "2026.11.16-1230";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -2262,11 +2262,38 @@ function quitaT(s){ return String(s||'').toLowerCase().normalize('NFD').replace(
 /* Qué cuenta del reporte corresponde a cada saldo (por banco: Santander / Banco de Chile / Global66). */
 function bancoDe(n){ const s=quitaT(n); return /santander/.test(s)?'santander':/global/.test(s)?'global66':(/chile|bch/.test(s)&&!/fan/.test(s)&&/cta\.? ?cte|corriente/.test(s))?'bancochile-cc':/chile|bch|fan/.test(s)?'bancochile':s; }   // la cuenta corriente del Banco de Chile (ahorro) va aparte de la FAN
 /* Saldo de cada cuenta hoy = última foto de la hoja Saldos − compras con débito + ingresos posteriores a esa foto. */
+/* Saldo de cada cuenta al día de hoy: parte del último saldo informado y le aplica TODO lo que pasó después
+   (compras con débito, sueldos e ingresos, pagos y abonos a las tarjetas, depósitos y retiros de ahorro). */
+function cuentaDeTexto(t,def){ const s=quitaT(t||'');
+  if(/fan/.test(s)) return 'bancochile';
+  if(/(chile|bdc|bch)/.test(s)&&/(cta\.? ?cte|corriente)/.test(s)) return 'bancochile-cc';
+  if(/santander/.test(s)) return 'santander'; if(/global/.test(s)) return 'global66'; if(/chile|bdc|bch/.test(s)) return 'bancochile';
+  return def; }
+const fechaDe=x=>String(x||'').replace('T',' ');
+function movsCuentaDesde(b,f){   // f = 'yyyy-mm-dd HH:MM' del saldo informado
+  const despues=x=>{ const d=fechaDe(x); return d.length>10?d.slice(0,16)>f:d.slice(0,10)>f.slice(0,10); };
+  const out=[];
+  D.movimientos.filter(m=>m.tipo!=='Crédito'&&bancoDe(m.tarjeta)===b&&despues(m.fecha)).forEach(m=>out.push(-m.valor));
+  (D.ingresos||[]).filter(i=>bancoDe(i.cuenta)===b&&despues(i.fecha)).forEach(i=>out.push(+i.monto));
+  // abonos a la tarjeta: salen de la cuenta que dice la nota ("desde FAN"), si no, de la cuenta del mismo banco
+  (D.abonos||[]).filter(a=>despues(a.fecha)).forEach(a=>{ const m=String(a.nota||'').match(/desde (la )?(cuenta )?([^·,.;()]+)/i);
+    const def=/santander/i.test(a.tarjeta)?'santander':'bancochile'; if(cuentaDeTexto(m?m[3]:'',def)===b) out.push(-a.monto); });
+  // pago del estado de cuenta (marcado como pagado con fecha)
+  (D.facturas||[]).filter(x=>x.pagada&&x.fechaPago&&despues(x.fechaPago)).forEach(x=>{ const def=/santander/i.test(x.tarjeta)?'santander':'bancochile';
+    if(def===b) out.push(-Math.max(0,x.montoPagado||x.monto||0)); });
+  // ahorro: un depósito sale de la cuenta de origen ("desde Santander"); un retiro llega a la cuenta de destino ("→ Santander", "al disponible" = FAN)
+  (D.ahorro||[]).filter(a=>(a.mov==='Depósito'||/^Retiro/.test(a.mov))&&despues(a.fecha)).forEach(a=>{
+    const c=(D.carpetas||[]).find(c=>c.carpeta===a.carpeta)||{}; if(/efectivo/i.test(c.cuenta||'')) return;
+    const n=String(a.nota||''), v=aCLP(a.carpeta,a.monto,mesKey(a.fecha));
+    if(a.mov==='Depósito'){ const m=n.match(/desde (la )?(cuenta )?([^·,.;()]+)/i); if(cuentaDeTexto(m?m[3]:'','santander')===b) out.push(-v); }
+    else { const m=n.match(/→\s*([^·,.;()]+)/)||n.match(/\ba (la )?(cuenta )?((global ?66|santander|fan|banco de chile|bdc)[^·,.;()]*)/i);
+      const dest=a.alDisp?'bancochile':cuentaDeTexto(m?m[m.length-1]:'','santander'); if(dest===b) out.push(+v); }
+  });
+  return out;
+}
 function saldoCuentaHoy(s){
-  const b=bancoDe(s.cuenta), f=s.fecha.length>10?s.fecha:s.fecha+' 23:59';
-  const gas=suma(D.movimientos.filter(m=>m.tipo!=='Crédito'&&bancoDe(m.tarjeta)===b&&m.fecha.slice(0,16)>f),m=>m.valor);
-  const ing=suma((D.ingresos||[]).filter(i=>bancoDe(i.cuenta)===b&&i.fecha.slice(0,10)>f.slice(0,10)),i=>i.monto);
-  return {cuenta:s.cuenta,fecha:s.fecha,saldo:s.saldo-gas+ing,mov:gas||ing};
+  const b=bancoDe(s.cuenta), f=s.fecha.length>10?s.fecha.slice(0,16):s.fecha+' 23:59', L=movsCuentaDesde(b,f);
+  return {cuenta:s.cuenta,fecha:s.fecha,saldo:s.saldo+suma(L,x=>x),mov:L.length};
 }
 /* Resumen para el celular: cuánto te queda de tus disponibles del mes, en un anillo. */
 function rHero(k){
