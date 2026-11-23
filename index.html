@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.16-1915";
+window.MF_VERSION = "2026.11.23-1400";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1079,13 +1079,13 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
           <div class="kpi disp noSpark"><div class="kh">Deuda pendiente</div><div class="kv" id="qDeuda"></div><div class="ks">cuotas desde el próximo mes</div></div>
         </div>
         <div class="cuadro" data-id="qMesK" data-w="4" data-nombre="Cuotas del mes">
-          <div class="kpi exp noSpark"><div class="kh">Cuotas de este mes</div><div class="kv" id="qMes"></div><div class="ks" id="qMesN"></div></div>
+          <div class="kpi exp noSpark"><div class="kh">Próximo pago de tarjetas</div><div class="kv" id="qMes"></div><div class="ks" id="qMesN"></div></div>
         </div>
         <div class="cuadro" data-id="qActK" data-w="4" data-nombre="Compras activas">
           <div class="kpi sav noSpark"><div class="kh">Compras activas</div><div class="kv" id="qAct"></div><div class="ks">con cuotas por pagar</div></div>
         </div>
         <div class="cuadro" data-id="proy" data-w="12" data-nombre="Cuotas próximos 12 meses">
-          <div class="panel"><h2>Cuotas por pagar · próximos 12 meses <small style="font-weight:400;color:var(--muted)">· en verde lo que ya pagaste o adelantaste</small></h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
+          <div class="panel"><h2>Pagos de tarjeta · próximos meses <small style="font-weight:400;color:var(--muted)">· cada barra es lo que pagas con el sueldo de fin de ese mes · en verde lo ya pagado o adelantado</small></h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
         </div>
         <div class="cuadro" data-id="tablaCuotas" data-w="12" data-nombre="Compras con cuotas">
           <div class="panel"><h2 class="izq">Compras con cuotas pendientes</h2><div class="tj-row" id="qTarjetas"></div><div id="tCuotas"></div></div>
@@ -2026,7 +2026,7 @@ function barrasCuotasPagadas(id,meses){
     .concat(tarjetas.map(t=>{ const c=colorTarjeta(t);
       return {label:t+' · por pagar',data:F.map(o=>Math.max(0,((o[t]||{}).fact||0)-((o[t]||{}).pag||0))),backgroundColor:relleno(c,esCred(t)),borderColor:c,
         borderWidth:esCred(t)?1:0,borderRadius:3,stack:'s',maxBarThickness:30}; }));
-  grafico(id,{type:'bar',data:{labels:meses.map(cortoMes),datasets:sets},
+  grafico(id,{type:'bar',data:{labels:meses.map(k=>id==='cProy'?cortoMes(sumarMeses(k,-1)):cortoMes(k)),datasets:sets},
     options:{maintainAspectRatio:false,layout:{padding:{top:16}},
       plugins:{legend:leyendaChart,etiquetas:{modo:'total'},
         tooltip:{...tip,displayColors:true,callbacks:{label:c=>' '+c.dataset.label+': '+CLP(c.raw),
@@ -3389,12 +3389,16 @@ function cuotasPend(m,k){
 function rCuotas(){
   $('qDeuda').textContent=CLP(deudaReal(HOY));
   const esteMes=cuotasMap[HOY]||[];
-  const tm=tarjetasMes(HOY), tv=Object.values(tm), reales=tv.filter(x=>x.real).length;
+  /* Pagas la tarjeta con el sueldo de fin de mes: si el estado de cuenta de este mes ya está pagado, lo que viene es el del mes siguiente */
+  const fpHoy=facturaYPagado(HOY), yaPagado=Object.values(fpHoy).length>0&&Object.values(fpHoy).every(x=>(x.fact||0)-(x.pag||0)<1000);
+  const kP=yaPagado?sumarMeses(HOY,1):HOY, fpP=facturaYPagado(kP);
+  const tm={}; Object.keys(fpP).forEach(t=>{ const o=fpP[t], real=(D.facturas||[]).some(f=>f.tarjeta===t&&f.vence&&mesKey(f.vence)===kP&&!f.faltaMonto); tm[t]={monto:Math.max(0,(o.fact||0)-(o.pag||0)),real}; });
+  const tv=Object.values(tm), reales=tv.filter(x=>x.real).length;
   $('qMes').textContent=CLP(suma(tv,x=>x.monto));
-  $('qMesN').textContent=nombreMes(HOY)+' · '+(tv.length&&reales===tv.length?'según tus estados de cuenta':reales?'estado de cuenta + estimado':esteMes.length+' cuota'+(esteMes.length===1?'':'s')+' (estimado)');
+  $('qMesN').textContent='con el sueldo de fin de '+nombreMes(sumarMeses(kP,-1)).toLowerCase()+' · '+(tv.length&&reales===tv.length?'según tus estados de cuenta':reales?'estado de cuenta + estimado':'estimado, falta el estado de cuenta');
   const act=D.movimientos.filter(m=>m.tipo==='Crédito'&&cuotasPend(m,HOY)>0), actCuotas=act.filter(m=>m.cuotas>1);
   $('qAct').textContent=actCuotas.length;
-  const prox=Array.from({length:12},(_,i)=>sumarMeses(HOY,i));
+  const prox=Array.from({length:12},(_,i)=>sumarMeses(HOY,i));   // mes de vencimiento; la etiqueta muestra el sueldo con que se paga (fin del mes anterior)
   barrasCuotasPagadas('cProy',prox);   // cada barra = lo facturado del mes; abajo, en verde, lo que ya pagaste o adelantaste
   const filas=act.filter(m=>m.cuotas>1);
   { const porT={}; filas.forEach(m=>(porT[m.tarjeta]=porT[m.tarjeta]||[]).push(m));
@@ -3402,7 +3406,7 @@ function rCuotas(){
     $('qTarjetas').innerHTML=Object.keys(porT).map(t=>{ const L=porT[t], deuda=suma(L,m=>cuotasPend(m,HOY)*m.valorCuota), mes=(tm[t]||{}).monto||0;
       return `<div class="tj" style="--c:${colorTarjeta(t)}"><div class="tj-in">
         <div class="tj-f"><div style="display:flex;justify-content:space-between;align-items:center"><span class="nom">${esc(t)}</span><span class="chip"></span></div>
-          <div><small>Pagas este mes</small><div class="mt">${CLP(mes)}</div></div>
+          <div><small>Próximo pago · fin de ${nombreMes(sumarMeses(kP,-1)).toLowerCase()}</small><div class="mt">${CLP(mes)}</div></div>
           <small>${L.length} compra${L.length===1?'':'s'} en cuotas · deuda ${CLP(deuda)} · toca para ver ↻</small></div>
         <div class="tj-b"><h4>${esc(t)} · cuotas</h4>${L.length?L.map(m=>`<div><span>${esc(m.compra)}</span><b>${m.cuotas-cuotasPend(m,HOY)}/${m.cuotas} · ${CLP(m.valorCuota)}</b></div>`).join(''):'<div><span>Sin compras en cuotas</span></div>'}</div>
       </div></div>`; }).join('');
