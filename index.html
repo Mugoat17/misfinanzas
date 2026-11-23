@@ -15,7 +15,7 @@
 <script>
 /* Mis Finanzas en GitHub Pages: reemplaza google.script.run por llamadas a la API de Apps Script */
 window.MF_API = "https://script.google.com/macros/s/AKfycbzOKINMfOnmsswO-fRz6DSMw8KZnthPzPzbpmkLAP1lsN0MbICcsejursnOXVp3t6NZ/exec";
-window.MF_VERSION = "2026.11.23-1400";
+window.MF_VERSION = "2026.11.23-1430";
 (function(){
   if (window.google && google.script) return;
   try { if (/[?&]nuevaclave/.test(location.search)) { localStorage.removeItem('mfToken'); history.replaceState(null, '', location.pathname); } } catch(e) {}   // ?nuevaclave → vuelve a pedir la clave
@@ -1085,7 +1085,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
           <div class="kpi sav noSpark"><div class="kh">Compras activas</div><div class="kv" id="qAct"></div><div class="ks">con cuotas por pagar</div></div>
         </div>
         <div class="cuadro" data-id="proy" data-w="12" data-nombre="Cuotas próximos 12 meses">
-          <div class="panel"><h2>Pagos de tarjeta · próximos meses <small style="font-weight:400;color:var(--muted)">· cada barra es lo que pagas con el sueldo de fin de ese mes · en verde lo ya pagado o adelantado</small></h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
+          <div class="panel"><h2>Facturado a pagar · por mes <small style="font-weight:400;color:var(--muted)">· lo que pagas a fin de cada mes (sin lo que ya adelantaste)</small></h2><div class="chart alta"><canvas id="cProy"></canvas></div></div>
         </div>
         <div class="cuadro" data-id="tablaCuotas" data-w="12" data-nombre="Compras con cuotas">
           <div class="panel"><h2 class="izq">Compras con cuotas pendientes</h2><div class="tj-row" id="qTarjetas"></div><div id="tCuotas"></div></div>
@@ -2018,20 +2018,20 @@ function facturaYPagado(k){
     else { const f=est[t]||0; out[t]={fact:f,pag:Math.min(f,cred[t]||0)}; } });
   return out;
 }
-function barrasCuotasPagadas(id,meses){
+function barrasCuotasPagadas(id,meses,neto=false){
   const F=meses.map(facturaYPagado);
   const tarjetas=[...new Set(F.flatMap(o=>Object.keys(o)))].sort((a,b)=>suma(F,o=>(o[b]||{}).fact||0)-suma(F,o=>(o[a]||{}).fact||0));
   const verde=css('--sav');
-  const sets=[{label:'✓ Pagado / adelantado',data:F.map(o=>suma(Object.values(o),x=>x.pag)),backgroundColor:alpha(verde,.85),borderColor:verde,borderWidth:1,borderRadius:3,stack:'s',maxBarThickness:30,_pag:true}]
+  const sets=(neto?[]:[{label:'✓ Pagado / adelantado',data:F.map(o=>suma(Object.values(o),x=>x.pag)),backgroundColor:alpha(verde,.85),borderColor:verde,borderWidth:1,borderRadius:3,stack:'s',maxBarThickness:30,_pag:true}])
     .concat(tarjetas.map(t=>{ const c=colorTarjeta(t);
-      return {label:t+' · por pagar',data:F.map(o=>Math.max(0,((o[t]||{}).fact||0)-((o[t]||{}).pag||0))),backgroundColor:relleno(c,esCred(t)),borderColor:c,
+      return {label:neto?t:t+' · por pagar',data:F.map(o=>Math.max(0,((o[t]||{}).fact||0)-((o[t]||{}).pag||0))),backgroundColor:relleno(c,esCred(t)),borderColor:c,
         borderWidth:esCred(t)?1:0,borderRadius:3,stack:'s',maxBarThickness:30}; }));
   grafico(id,{type:'bar',data:{labels:meses.map(k=>id==='cProy'?cortoMes(sumarMeses(k,-1)):cortoMes(k)),datasets:sets},
     options:{maintainAspectRatio:false,layout:{padding:{top:16}},
       plugins:{legend:leyendaChart,etiquetas:{modo:'total'},
         tooltip:{...tip,displayColors:true,callbacks:{label:c=>' '+c.dataset.label+': '+CLP(c.raw),
           footer:it=>{ if(!it.length) return ''; const o=F[it[0].dataIndex], fa=suma(Object.values(o),x=>x.fact), pa=suma(Object.values(o),x=>x.pag);
-            return 'Facturado: '+CLP(fa)+'\nPagado/adelantado: '+CLP(pa)+'\nFalta pagar: '+CLP(fa-pa); }},filter:i=>i.raw>0}},
+            return neto?'A pagar: '+CLP(fa-pa):'Facturado: '+CLP(fa)+'\nPagado/adelantado: '+CLP(pa)+'\nFalta pagar: '+CLP(fa-pa); }},filter:i=>i.raw>0}},
       scales:{x:{stacked:true,grid:{display:false},ticks:{maxRotation:0,autoSkip:true}},y:ejeY(true)}}});
 }
 const claveTipos=()=>`<span>${swatch(css('--muted'),false)} Débito (sólido)</span><span>${swatch(css('--muted'),true)} Crédito (rayado)</span>`;
@@ -3395,11 +3395,12 @@ function rCuotas(){
   const tm={}; Object.keys(fpP).forEach(t=>{ const o=fpP[t], real=(D.facturas||[]).some(f=>f.tarjeta===t&&f.vence&&mesKey(f.vence)===kP&&!f.faltaMonto); tm[t]={monto:Math.max(0,(o.fact||0)-(o.pag||0)),real}; });
   const tv=Object.values(tm), reales=tv.filter(x=>x.real).length;
   $('qMes').textContent=CLP(suma(tv,x=>x.monto));
-  $('qMesN').textContent='con el sueldo de fin de '+nombreMes(sumarMeses(kP,-1)).toLowerCase()+' · '+(tv.length&&reales===tv.length?'según tus estados de cuenta':reales?'estado de cuenta + estimado':'estimado, falta el estado de cuenta');
+  const vReal=(D.facturas||[]).filter(f=>f.vence&&mesKey(f.vence)===kP).map(f=>f.vence).sort()[0];
+  $('qMesN').textContent='a pagar a fin de '+nombreMes(sumarMeses(kP,-1)).toLowerCase()+(vReal?' (vence el '+fechaCorta(vReal)+')':'')+' · '+(tv.length&&reales===tv.length?'según tus estados de cuenta':reales?'estado de cuenta + estimado':'estimado, falta el estado de cuenta');
   const act=D.movimientos.filter(m=>m.tipo==='Crédito'&&cuotasPend(m,HOY)>0), actCuotas=act.filter(m=>m.cuotas>1);
   $('qAct').textContent=actCuotas.length;
-  const prox=Array.from({length:12},(_,i)=>sumarMeses(HOY,i));   // mes de vencimiento; la etiqueta muestra el sueldo con que se paga (fin del mes anterior)
-  barrasCuotasPagadas('cProy',prox);   // cada barra = lo facturado del mes; abajo, en verde, lo que ya pagaste o adelantaste
+  const prox=Array.from({length:12},(_,i)=>sumarMeses(kP,i));   // mes de vencimiento; la etiqueta muestra el sueldo con que se paga (fin del mes anterior)
+  barrasCuotasPagadas('cProy',prox,true);   // cada barra = lo facturado del mes; abajo, en verde, lo que ya pagaste o adelantaste
   const filas=act.filter(m=>m.cuotas>1);
   { const porT={}; filas.forEach(m=>(porT[m.tarjeta]=porT[m.tarjeta]||[]).push(m));
     Object.keys(tm).filter(t=>(tm[t]||{}).monto>0).forEach(t=>porT[t]=porT[t]||[]);   // una tarjeta sin cuotas y sin nada que pagar este mes no se muestra
